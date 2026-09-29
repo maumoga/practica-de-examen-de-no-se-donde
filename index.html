@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PAA UCR — Práctica de razonamiento</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#ffffff; --ink:#15202b; --muted:#5b6b7c; --line:#dce3ea;
+    --ok:#0d7a45; --ok-bg:#e7f6ed; --bad:#b5322a; --bad-bg:#fdecea; --marca:#8a6100;
+    --marca-bg:#fff6e0; --brand:#12507b; --brand-soft:#e8f1f8;
+    --sombra:0 1px 2px rgba(16,32,48,.06),0 8px 24px rgba(16,32,48,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);min-height:100vh;
+    font:16px/1.6 "Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:860px;margin:0 auto;padding:0 16px 64px}
+
+  header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+  .head{max-width:860px;margin:0 auto;padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .marca{font-weight:700;color:var(--brand);font-size:17px}
+  .sub{color:var(--muted);font-size:13px}
+  nav{margin-left:auto;display:flex;gap:6px}
+  nav button{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--card);color:var(--muted);
+    padding:7px 13px;border-radius:8px;cursor:pointer}
+  nav button:hover{background:#f2f5f8;color:var(--ink)}
+  nav button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sombra);padding:20px;margin-top:18px}
+  h1{font-size:22px;margin:0 0 6px}
+  h2{font-size:17px;margin:22px 0 10px}
+  p{margin:0 0 12px}
+  .muted{color:var(--muted)}
+  .chico{font-size:13px}
+  .fila{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+  .campo{display:flex;flex-direction:column;gap:5px}
+  .campo label{font-size:12.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  select{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);min-width:140px}
+  .btn{font:inherit;font-weight:600;padding:11px 20px;border-radius:10px;border:1px solid transparent;cursor:pointer;
+    background:var(--brand);color:#fff}
+  .btn:hover:not(:disabled){filter:brightness(1.07)}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn.sec{background:#fff;border-color:var(--line);color:var(--ink);font-weight:500}
+  .btn.warn{background:#fff;border-color:#e6cf9a;color:var(--marca);font-weight:500}
+  .btn.warn.on{background:var(--marca-bg);border-color:var(--marca);font-weight:600}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:6px}
+  .stat{background:#fbfcfd;border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+  .stat b{display:block;font-size:23px;line-height:1.25}
+  .stat span{font-size:12.5px;color:var(--muted)}
+
+  .meta{display:flex;gap:9px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-bottom:12px}
+  .pill{background:var(--brand-soft);color:var(--brand);border-radius:999px;padding:3px 11px;font-weight:600;font-size:12.5px}
+  .pill.g{background:#eef1f4;color:var(--muted)}
+  .barra{height:6px;background:#e8edf2;border-radius:99px;overflow:hidden;margin-bottom:18px}
+  .barra i{display:block;height:100%;background:var(--brand);transition:width .2s}
+  .enunciado{font-size:17.5px;line-height:1.65}
+  .pregunta{font-weight:600;margin-top:10px}
+  .datos{margin:10px 0 0;padding-left:22px}
+  .datos li{margin:5px 0}
+  .ops{margin:18px 0 0;display:flex;flex-direction:column;gap:9px}
+  .op{display:flex;gap:12px;align-items:flex-start;width:100%;text-align:left;font:inherit;background:#fff;
+    border:1.5px solid var(--line);border-radius:11px;padding:13px 15px;cursor:pointer;color:var(--ink)}
+  .op:hover:not(:disabled){border-color:#9dbdd4;background:#fafcfe}
+  .op:disabled{cursor:default}
+  .op .letra{flex:0 0 26px;height:26px;border-radius:7px;background:#eef2f6;color:var(--muted);
+    display:grid;place-items:center;font-weight:700;font-size:13.5px;margin-top:1px}
+  .op.bien{border-color:var(--ok);background:var(--ok-bg)}
+  .op.bien .letra{background:var(--ok);color:#fff}
+  .op.mal{border-color:var(--bad);background:var(--bad-bg)}
+  .op.mal .letra{background:var(--bad);color:#fff}
+  .op.atenuada{opacity:.55}
+  .op .marca-op{font-weight:700;margin-left:6px}
+
+  .veredicto{display:flex;gap:11px;align-items:flex-start;border-radius:12px;padding:14px 16px;margin-top:18px;border:1px solid}
+  .veredicto.ok{background:var(--ok-bg);border-color:#b6e0c6}
+  .veredicto.no{background:var(--bad-bg);border-color:#f2c4c0}
+  .veredicto strong{display:block;margin-bottom:2px}
+  .sol{margin-top:14px;border:1px solid var(--line);border-left:4px solid var(--brand);border-radius:10px;background:#fbfcfe}
+  .sol>summary{cursor:pointer;padding:12px 16px;font-weight:600;color:var(--brand);list-style:none}
+  .sol>summary::-webkit-details-marker{display:none}
+  .sol>summary:before{content:"▸ ";}
+  .sol[open]>summary:before{content:"▾ ";}
+  .sol .cuerpo{padding:0 16px 16px}
+  .tecnica{background:var(--marca-bg);border:1px solid #eddfb6;border-radius:9px;padding:11px 13px;margin-bottom:14px;font-size:14.5px}
+  .tecnica b{color:var(--marca)}
+  .sol p{line-height:1.7}
+  .sol p:last-child{margin-bottom:0}
+  .acciones{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;align-items:center}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:14px}
+  kbd{background:#eef2f6;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 5px;font:inherit;font-size:11.5px}
+
+  .tabla{width:100%;border-collapse:collapse;font-size:14px}
+  .tabla th,.tabla td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+  .tabla th{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  .tabla td.num,.tabla th.num{text-align:right;white-space:nowrap}
+  .barra-p{height:7px;background:#e8edf2;border-radius:99px;overflow:hidden;min-width:80px;margin-top:6px}
+  .barra-p i{display:block;height:100%;background:var(--ok)}
+  .barra-p i.med{background:#d0a02a}
+  .barra-p i.mal{background:var(--bad)}
+  .vacio{color:var(--muted);font-size:14px;padding:10px 0}
+
+  @media (max-width:600px){
+    .head{padding:11px 16px} .sub{display:none}
+    .card{padding:16px;border-radius:12px}
+    .enunciado{font-size:16.5px}
+    .acciones .btn{flex:1 1 auto}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="head">
+    <span class="marca">PAA · UCR</span>
+    <span class="sub">Práctica de razonamiento verbal y matemático</span>
+    <nav>
+      <button id="navPractica" class="on">Practicar</button>
+      <button id="navStats">Progreso</button>
+      <button id="navInfo">Info</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ================= CONFIGURACIÓN ================= -->
+  <section id="vConfig">
+    <div class="card">
+      <h1>Banco de práctica PAA</h1>
+      <p class="muted chico">50 ítems de la Prueba de Aptitud Académica: 4 opciones y una sola correcta. Respondé,
+        el sistema te dice si está buena o mala, y te muestra la solución completa con la técnica para resolverla más rápido.</p>
+      <div class="stats" id="resumen"></div>
+    </div>
+
+    <div class="card">
+      <h2>1 · Qué querés practicar</h2>
+      <div class="fila">
+        <div class="campo">
+          <label for="fArea">Área</label>
+          <select id="fArea">
+            <option value="todas">Todas (50)</option>
+            <option value="Verbal">Razonamiento verbal</option>
+            <option value="Matematica">Razonamiento matemático</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="fTema">Tema</label>
+          <select id="fTema"></select>
+        </div>
+        <div class="campo">
+          <label for="fModo">Orden</label>
+          <select id="fModo">
+            <option value="prioridad">Primero las difíciles</option>
+            <option value="aleatorio">Aleatorio</option>
+            <option value="orden">En orden (1 → 50)</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label for="fCant">Cantidad</label>
+          <select id="fCant">
+            <option value="10">10 preguntas</option>
+            <option value="20" selected>20 preguntas</option>
+            <option value="30">30 preguntas</option>
+            <option value="50">Todas las que filtren</option>
+          </select>
+        </div>
+      </div>
+      <div class="acciones">
+        <button class="btn" id="btnEmpezar">Empezar a practicar</button>
+        <button class="btn sec" id="btnFalladas">Repetir las falladas</button>
+        <button class="btn sec" id="btnDudosas">Repetir las dudosas</button>
+        <button class="btn sec" id="btnSinVer">Practicar sin ver la solución</button>
+      </div>
+      <p class="hint" id="conteoFiltro"></p>
+    </div>
+
+    <div class="card">
+      <h2>2 · Marcadas como dudosas</h2>
+      <p class="muted chico" id="txtDudosas"></p>
+    </div>
+  </section>
+
+  <!-- ================= ESTUDIO ================= -->
+  <section id="vEstudio" hidden>
+    <div class="card">
+      <div class="barra"><i id="progBar" style="width:0%"></i></div>
+      <div class="meta">
+        <span class="pill" id="mArea"></span>
+        <span class="pill g" id="mTema"></span>
+        <span class="pill g" id="mCuenta"></span>
+        <span id="mTiempo" class="chico"></span>
+      </div>
+      <div class="enunciado" id="txtEnunciado"></div>
+      <div class="pregunta" id="txtPregunta"></div>
+      <div class="ops" id="cajaOpciones"></div>
+      <div id="cajaSolucion" hidden></div>
+      <div class="acciones" id="cajaBotones">
+        <button class="btn sec" id="bSol">Ver solución</button>
+        <button class="btn warn" id="bDudosa">⚠ Marcar dudosa</button>
+        <button class="btn" id="bNext">Siguiente →</button>
+        <button class="btn sec" id="bSalir">Salir</button>
+      </div>
+      <p class="hint">Atajos: <kbd>1</kbd>–<kbd>4</kbd> o <kbd>A</kbd>–<kbd>D</kbd> responder ·
+        <kbd>Espacio</kbd> solución · <kbd>M</kbd> dudosa · <kbd>→</kbd> siguiente · <kbd>Esc</kbd> salir</p>
+    </div>
+
+    <div class="card" id="cardSesion" hidden>
+      <h1>Sesión terminada</h1>
+      <div class="stats" id="resumenFin"></div>
+      <div id="detalleFalladas"></div>
+      <div class="acciones">
+        <button class="btn" id="btnRepetirFalladas">Repetir las falladas</button>
+        <button class="btn sec" id="btnVolver">Volver al inicio</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PROGRESO ================= -->
+  <section id="vStats" hidden>
+    <div class="card">
+      <h1>Tu progreso</h1>
+      <div class="stats" id="statGlobal"></div>
+    </div>
+    <div class="card">
+      <h2>Por área</h2>
+      <table class="tabla" id="tabArea"></table>
+    </div>
+    <div class="card">
+      <h2>Temas ordenados de más débil a más fuerte</h2>
+      <table class="tabla" id="tabTema"></table>
+    </div>
+    <div class="card">
+      <h2>Sesiones</h2>
+      <table class="tabla" id="tabSesiones"></table>
+      <div class="acciones">
+        <button class="btn sec" id="btnReset">Reiniciar todo mi progreso</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= INFO ================= -->
+  <section id="vInfo" hidden>
+    <div class="card">
+      <h1>Sobre este banco</h1>
+      <p>Las 50 preguntas y sus soluciones salen del libro <em>60 − 10 preguntas y soluciones de práctica para la
+        Prueba de Aptitud Académica</em> (Programa Permanente de la PAA, Instituto de Investigaciones Psicológicas,
+        UCR, 2023). Cada ítem trae la solución oficial completa —por qué se descartan las otras tres opciones— más
+        una técnica escrita para la PAA.</p>
+      <p>La PAA real tiene <b>45 ítems</b> de selección única con 4 opciones, dura <b>1 hora 50 minutos</b>
+        (unos 2 min 26 s por pregunta) y se reparte así:</p>
+      <ul class="datos">
+        <li><b>Razonamiento verbal</b> ≈ 59 %: comprensión lectora, ideas implícitas, paráfrasis, causa, analogías y vocabulario en contexto.</li>
+        <li><b>Razonamiento matemático</b> ≈ 41 %: aritmética, proporciones, sucesiones, divisibilidad y conteo. Sin calculadora.</li>
+      </ul>
+      <h2>Cómo funcionan los atajos de teclado</h2>
+      <table class="tabla">
+        <tr><td><kbd>1</kbd>–<kbd>4</kbd> o <kbd>A</kbd>–<kbd>D</kbd></td><td>Responder</td></tr>
+        <tr><td><kbd>Espacio</kbd> / <kbd>S</kbd></td><td>Abrir o cerrar la solución</td></tr>
+        <tr><td><kbd>M</kbd></td><td>Marcar como dudosa (vuelve a salir en tus prácticas)</td></tr>
+        <tr><td><kbd>→</kbd> o <kbd>Enter</kbd></td><td>Siguiente pregunta</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Volver al inicio</td></tr>
+      </table>
+      <h2>Estrategia para el día de la prueba</h2>
+      <ul class="datos">
+        <li>En la parte verbal (la mayoritaria) la respuesta casi siempre está en el texto, expresada con otras palabras. Buscá paráfrasis, no palabras literales.</li>
+        <li>Cuidado con las trampas: “solamente”, “únicamente”, “actualmente” y “siempre” suelen volver falsa una opción.</li>
+        <li>En la parte matemática el 80 % se resuelve con las cuatro operaciones y fracciones. Sin calculadora: practicá restas de múltiplos y sucesiones.</li>
+        <li>Cuando piden “con certeza” o “imposible”, la respuesta casi siempre es la más conservadora: la que no agrega nada que el texto no diga.</li>
+        <li>Mirá el reloj: 2 minutos por pregunta. Si la pasás, marcá ⚠ dudosa y seguí.</li>
+      </ul>
+      <p class="muted chico">Tu progreso se guarda solo en este navegador (localStorage). El archivo funciona sin
+        internet y no envía nada a ningún servidor.</p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ============================ BANCO DE PREGUNTAS ============================
+   Cada objeto: { id, area, tema, enunciado, datos, pregunta, opciones, correcta, tecnica, explicacion }
+   Para agregar más preguntas: copiá un objeto completo y cambiá los valores.
+   area: "Verbal" | "Matematica"   ·   correcta: "A" | "B" | "C" | "D"   */
+const BANCO = [{"id":1,"area":"Verbal","tema":"Lógica: qué sucede con certeza","enunciado":"Una empresa posee dos oficinas. En la oficina 1 solo hay hombres y en la oficina 2 hay 15 mujeres y varios hombres. Se van a pasar 9 personas de la oficina 2 a la oficina 1.","datos":null,"pregunta":"¿Cuál de las siguientes afirmaciones sucederá con certeza?","opciones":{"A":"La oficina 1 tendrá mujeres y hombres.","B":"La oficina 2 tendrá mujeres y hombres.","C":"La oficina 1 tendrá varias mujeres.","D":"La oficina 2 tendrá varias mujeres."},"correcta":"D","tecnica":"En los ítems de certeza, busca el dato límite ('a lo sumo 9') y descarta cada opción con un caso extremo.","explicacion":"En este ítem, se debe analizar cada opción y verificar cuál de ellas sucede en todos los casos posibles. La opción A no se cumple con certeza debido a que si la oficina 2 tiene 9 o más hombres y se decide pasar únicamente hombres de la oficina 2 a la 1, entonces, la oficina 1 quedaría con solo hombres. Análogamente, en la opción B, si la oficina 2 tiene 9 o menos hombres y todos ellos se incluyen en los empleados que se van a cambiar de oficina, entonces, la oficina 2 se quedaría con solo mujeres. Con respecto a la opción C, esta no se cumple con certeza, porque es posible que la oficina 1 quede con solo hombres, como ya se planteó en el análisis de la opción A. La opción D se cumple con certeza debido a que a lo sumo, se pueden pasar 9 mujeres de la oficina 2 a la 1, lo cual implicaría que queden al menos 6 mujeres en la oficina 2."},{"id":2,"area":"Matematica","tema":"Cuantitativo: problemas de tiempo","enunciado":"Álvaro y Daniela participaron en un juego por internet. Álvaro se encontraba en Panamá y Daniela en Portugal. Álvaro comentó que el juego empezó un lunes a las 4:00 a. m. de Panamá y Daniela dijo que el juego terminó a las 4:00 a. m. de Portugal, pero del martes. La hora en Portugal está adelantada 6 horas respecto a la de Panamá.","datos":null,"pregunta":"¿Cuántas horas duró el juego?","opciones":{"A":"6","B":"12","C":"18","D":"24"},"correcta":"C","tecnica":"Lleva todas las horas al mismo huso antes de restar; si no, la resta no significa nada.","explicacion":"Para encontrar la solución de este ítem, se debe convertir la hora de un país a la hora correspondiente del otro. Por ejemplo, se sabe que el juego inició a las 4:00 a. m. de Panamá; esto quiere decir que el juego empezó a las 10:00 a. m. de Portugal, ya que la diferencia horaria indica que la hora de Portugal está adelantada 6 horas con respecto a la de Panamá. Debido a que se conocen las horas de inicio y finalización del juego (10:00 a. m. del lunes y 4:00 a. m. del martes), en relación con la hora de Portugal, se puede calcular la duración del juego con el cálculo del tiempo comprendido entre dichas horas. Por tanto, la duración del juego fue de 18 horas: 14 horas (de las 10:00 a. m. del lunes a las 12:00 a. m. del martes) y 4 horas del martes (de las 12 a. m. a las 4:00 a. m.). Por lo anterior, la respuesta correcta es la opción C."},{"id":3,"area":"Verbal","tema":"Lógica: conclusión con certeza","enunciado":"Un grupo de personas quiere comenzar a practicar algún deporte que sea adecuado a sus preferencias y habilidades, de manera que nadie se quede sin practicar uno o más deportes. A partir de estos requisitos, se toman en cuenta los siguientes aspectos:","datos":["A todos les gusta mojarse y no saben andar en bicicleta.","Todos pueden mantenerse a flote en el agua y no les gusta el contacto físico.","Algunos pueden controlar bien los objetos esféricos y no desean recorrer largas distancias."],"pregunta":"De acuerdo con los aspectos anteriores, ¿qué se puede concluir, con certeza?","opciones":{"A":"Algunos pueden practicar natación y ciclismo.","B":"Todos pueden practicar ciclismo, pero no boxeo.","C":"Todos pueden practicar natación, pero no ciclismo.","D":"Algunos pueden practicar boxeo y todos pueden practicar natación."},"correcta":"C","tecnica":"Contrasta cada opción con los datos: lo que se deduce de 'todos' es más fuerte que lo de 'algunos'.","explicacion":"Según la instrucción del ítem, solamente una de las opciones puede concluirse con certeza. La opción A no es la clave. En el primer aspecto por considerar se indica que estas personas “no saben andar en bicicleta”; por tanto, no pueden practicar ciclismo. La opción B tampoco corresponde a la clave, ya que también se incluye el ciclismo como actividad, pero ninguno sabe andar en bicicleta. La opción D no es la clave. Practicar boxeo contradice el segundo criterio por considerar: a estas personas no les gusta el contacto físico. La opción C es la clave, pues a todas las personas les gusta mojarse y pueden mantenerse a flote, según los dos primeros aspectos por considerar; además, no practican ciclismo, lo cual concuerda con el primer criterio."},{"id":4,"area":"Verbal","tema":"Comprensión lectora: paráfrasis","enunciado":"En diversos países, la globalización, lejos de favorecer con mayores incentivos económicos la superación de los trabajadores, ha provocado que los salarios sean cada vez más reducidos.","datos":null,"pregunta":"De acuerdo con lo anterior, ¿cuál de las siguientes afirmaciones reproduce lo expuesto en el texto?","opciones":{"A":"La globalización eliminó los incentivos salariales.","B":"La globalización logró unificar los ingresos.","C":"La globalización redistribuyó los ingresos.","D":"La globalización modificó los salarios."},"correcta":"D","tecnica":"En comprensión lectora no busques palabras literales: busca la misma idea expresada con otras palabras.","explicacion":"En este ítem, se debe buscar una afirmación que presente una idea del texto principal sin utilizar exactamente las mismas palabras. La opción A no es la clave. En el texto principal, ninguna idea se refiere a la eliminación de incentivos salariales. La opción B no corresponde a la clave. En el texto principal no hay ningún concepto o acción equivalente a “unificar”; además, una reducción de los salarios no tiene como consecuencia que todos los trabajadores ganen el mismo sueldo. La opción C no es la clave. En el encabezado no hay ningún concepto o acción equivalente a “redistribuir”. La opción D es la clave. En el texto principal, se afirma que la globalización ha reducido los salarios: una reducción siempre implica una modificación."},{"id":5,"area":"Verbal","tema":"Comprensión lectora: análisis de proposiciones","enunciado":"Si alguien sabe andar en bicicleta es porque ha pasado por un proceso de aprendizaje, durante el cual pueden ocurrir muchas caídas. No obstante, llega el momento en que el aprendiz es capaz de mantener un equilibrio activo. Analice las siguientes proposiciones: 1. El aprendizaje no requiere de tiempo. 2. En todo aprendizaje pueden ocurrir equivocaciones. 3. Algunos procesos de aprendizaje no tardan mucho tiempo en completarse.","datos":null,"pregunta":"De las anteriores proposiciones, ¿cuál o cuáles hacen que el texto principal sea falso?","opciones":{"A":"Solo la 1.","B":"Solo la 2.","C":"Solo la 3.","D":"Solo la 2 y la 3."},"correcta":"A","tecnica":"Cuando piden qué proposición vuelve falso el texto, compara primero cada proposición con el texto: solo una discrepa.","explicacion":"Para resolver este ítem, debe identificarse qué opción hace que el texto principal sea falso. Las opciones de respuesta dependen de las afirmaciones posteriores al texto principal; por lo tanto, antes de analizarlas, debe verificarse la concordancia entre las afirmaciones y texto principal. La afirmación I no concuerda con el texto; según el texto principal: “llega el momento en el que el aprendiz es capaz de mantener el equilibrio”. Es decir, el aprendizaje sí requiere tiempo. La proposición II concuerda con el texto; según el texto principal, durante el proceso de aprender a andar en bicicleta, el aprendiz puede caerse. En este contexto, una caída equivale a una equivocación. La afirmación III concuerda con el texto: el texto principal no indica que los procesos deban durar periodos extensos. De esta forma, solamente la primera afirmación no concuerda con el texto principal; todas las opciones de respuesta donde aparezcan las afirmaciones II y III deben descartarse como clave. Por lo anterior, la opción A es la clave."},{"id":6,"area":"Verbal","tema":"Comprensión lectora: sinónimos en contexto","enunciado":"Los luchadores exitosos son aquellos persistentes y no precisamente los más fuertes; en una carrera de resistencia, ganan los más constantes, y no siempre los más veloces.","datos":null,"pregunta":"Según el texto anterior, ¿cuál característica deben tener los luchadores exitosos para alcanzar sus metas?","opciones":{"A":"Inteligencia.","B":"Entusiasmo.","C":"Esperanza.","D":"Insistencia."},"correcta":"D","tecnica":"Busca el sinónimo más cercano: 'persistente', 'constante' e 'insistente' son la misma familia de palabras.","explicacion":"El enunciado del ítem indica que los luchadores alcanzan sus metas por ser persistentes. Más adelante recalca la constancia y señala que estas cualidades se oponen a la fortaleza y la velocidad. Posteriormente, la instrucción solicita seleccionar la cualidad que tienen los luchadores para ser exitosos. La opción A no es la clave debido a que el enunciado no remite a la cualidad de inteligencia como necesaria para alcanzar el éxito. La opción B corresponde a un ánimo exaltado. La persistencia y constancia, sin embargo, tienen que ver más con el empeño y la tenacidad. Tomadas en cuenta estas connotaciones esta opción queda descartada. La opción C, según el enunciado, no es suficiente para lograr las metas de los luchadores, debido a que la esperanza no se liga a la constancia ni a la persistencia. Por último, la opción D sí es la opción correcta debido a que, al igual que la persistencia y la constancia, la insistencia se puede asociar al empeño y la dedicación."},{"id":7,"area":"Matematica","tema":"Cuantitativo: fracciones sucesivas","enunciado":"Carlos tenía 800 gapes en la billetera al inicio del día. Él decidió regalar la mitad del dinero que tuviera en la billetera a cada uno de los sobrinos que llegara a su casa ese día.","datos":null,"pregunta":"¿Cuánto dinero le dio Carlos al cuarto sobrino que lo visitó?","opciones":{"A":"200 gapes","B":"100 gapes","C":"50 gapes","D":"25 gapes"},"correcta":"C","tecnica":"En 'la mitad de lo que tenga', la cantidad se reduce a la mitad en cada paso: 800 → 400 → 200 → 100 → 50.","explicacion":"En este ítem, se debe analizar cuánto dinero le dio Carlos a cada uno de los sobrinos que lo visitó. Al primer sobrino le dio 400 gapes, ya que esa es la mitad del monto que Carlos tenía inicialmente (800 gapes). Luego de esto, a Carlos le quedaron 400 gapes en la billetera (800 − 400 = 400). Al segundo sobrino le correspondieron 200 gapes, que era la mitad de lo que Carlos tenía en la billetera en ese momento (400 gapes). En consecuencia, Carlos se quedó con el mismo monto que dio al segundo sobrino que lo visitó (200 gapes). A partir de los casos previos, se puede observar que a cada sobrino le correspondió la mitad de lo que recibió el último sobrino que llegó a visitar a Carlos, antes que él. Por lo tanto, al tercer sobrino que lo visitó le dio 100 gapes y al cuarto, le dio 50 gapes. Por lo anterior, la respuesta correcta es la opción C."},{"id":8,"area":"Matematica","tema":"Cuantitativo: divisibilidad y conteo","enunciado":"En una fábrica se empacaron 84 bombillos en varias cajas con 7 bombillos. En cada caja hay más bombillos en perfecto estado que la cantidad de bombillos defectuosos.","datos":null,"pregunta":"¿Cuál de las siguientes opciones es imposible que suceda?","opciones":{"A":"Se empacaron 36 bombillos defectuosos.","B":"Se empacaron 48 bombillos en perfecto estado.","C":"Se empacaron más de 40 bombillos defectuosos.","D":"Se empacaron más de 60 bombillos en perfecto estado."},"correcta":"C","tecnica":"Calcula primero lo que falta (84 ÷ 7 = 12 cajas) y luego los límites: mínimo 4 buenos y máximo 3 defectuosos por caja.","explicacion":"Este ítem demanda analizar cuáles opciones son imposibles, por lo tanto, debe descartarse cualquier opción posible. Antes de analizar cada opción, se pueden extraer algunos datos útiles para la solución del ítem. En primer lugar, los bombillos están repartidos en 12 cajas, ya que los 84 bombillos se repartieron en cajas de 7 bombillos cada una, que se obtiene de la operación 84 ÷ 7, que es igual a 12. En segundo lugar, la cantidad mínima de bombillos en buen estado de cada caja es 4 y la cantidad máxima de los defectuosos es 3, esto se debe a que en cada caja hay más bombillos en buen estado que defectuosos. Posteriormente, se procede a analizar la imposibilidad de cada opción. La opción A es probable si se considera el caso en el que se empaca la cantidad máxima posible de bombillos defectuosos, es decir, 3 en cada caja, con lo cual se empacaron 3 * 12 = 36 bombillos defectuosos. Igualmente, la opción B es factible dado que cuando las cajas tienen la cantidad mínima posible de bombillos en perfecto estado, ya que 12 cajas con 4 bombillos de este tipo indica que se empacaron 48 de estos. Con respecto a la opción D, se tiene que la cantidad mínima posible de bombillos empacados en perfecto estado es de 48, mientras que la máxima es de 84 (en el caso en que no hayan bombillos defectuosos). Por lo tanto, es posible que se hayan empacado 60 bombillos en perfecto estado, por ejemplo, pueden haber, en buen estado, 5 bombillos en 11 cajas y en otra caja 6, con lo que se cuenta con más de 60 bombillos empacados en perfecto estado (5 * 11 + 6 = 61). Finalmente, la opción C es la respuesta correcta, ya que no es plausible porque, como se mencionó previamente, la cantidad máxima posible de bombillos defectuosos empacados es 36, por lo anterior, no puede haber más de 40 bombillos con esta cualidad."},{"id":9,"area":"Verbal","tema":"Comprensión lectora: idea implícita","enunciado":"Un iglú es una vivienda tradicional de forma semiesférica y edificada con bloques de hielo, que los esquimales construyen para cumplir la función de casas de campamento cuando salen de cacería.","datos":null,"pregunta":"De acuerdo con lo anterior, ¿cuál es una idea implícita en el texto?","opciones":{"A":"El iglú es la residencia tradicional de los esquimales.","B":"El iglú es un tipo de residencia que resiste los embates del clima.","C":"Los esquimales habitan el iglú solamente cuando salen de cacería.","D":"Los campamentos esquimales se caracterizan, actualmente, por el uso de iglús."},"correcta":"C","tecnica":"Cuidado con las palabras que cambian el sentido: 'solamente', 'únicamente', 'actualmente'. En las ideas implícitas son la trampa.","explicacion":"El ítem presenta la definición de un iglú: una vivienda empleada tradicionalmente por los esquimales. La función de esta estructura de hielo es la de habitarla durante la caza. La instrucción solicita que se seleccione una idea implícita del texto, es decir, una idea que se pueda concluir con base en la información del encabezado. La opción A no es la respuesta correcta porque, aunque en el texto se dice que el iglú es una vivienda tradicional, no se dice que sea de los esquimales, solo que ellos la construyen. Además, según la instrucción, la clave debe encontrarse a través de la connotación o de la búsqueda de un sentido encubierto. La opción B se descarta porque en el enunciado no se habla de las características de protección de la vivienda contra los embates del clima. En la opción D, el adverbio “actualmente” alude a un tiempo presente que se opone a la concepción de tradición, la cual explicaría la constancia en la construcción de iglús, no así una actualidad. Por lo tanto, la opción C es la clave, ya que contiene la información implícita en el texto al señalar que “cuando salen de caza” los esquimales construyen el iglú."},{"id":10,"area":"Verbal","tema":"Comprensión lectora: resumir en una palabra","enunciado":"Un autor afirmaba que, en la mayoría de los casos, la ignorancia es algo superable. No sabemos porque no queremos saber.","datos":null,"pregunta":"Según el autor, ¿cómo puede caracterizarse la ignorancia?","opciones":{"A":"Como perjudicial.","B":"Como voluntaria.","C":"Como transitoria.","D":"Como definitiva."},"correcta":"B","tecnica":"Cuando piden resumir en una palabra, identifica la causa del texto y busca el adjetivo que la califica.","explicacion":"La información del ítem propone que la ignorancia se origina porque nos negamos a saber. Respecto a esta afirmación, se solicita resumir en una sola palabra la característica de la ignorancia. La opción A caracteriza a la ignorancia como perjudicial, sin embargo, el texto principal no se refiere a los beneficios o perjuicios de la ignorancia. La opción C tampoco es correcta, ya que la cualidad de transitoria indica que es pasajera. Esto solo se cumpliría si quisiéramos saber. Además, esta opción no es información que se encuentre explícitamente en el texto. La opción D no es la clave, ya que indica que la ignorancia es definitiva; en otras palabras, no se podría superar, acción que sí se establece en el ítem. Finalmente, la opción B es la clave debido a que no querer saber es lo que lleva al ser humano a la ignorancia, es decir, es un estado voluntario."},{"id":11,"area":"Verbal","tema":"Comprensión lectora: idea implícita","enunciado":"Dicen que la historia se repite, pero lo cierto es que sus lecciones no se aprovechan.","datos":null,"pregunta":"De acuerdo con lo anterior, ¿cuál es una idea implícita en el texto?","opciones":{"A":"Que los seres humanos aprenden de sus errores.","B":"Que toda experiencia permite que la historia se repita.","C":"Que la historia se alimenta de los errores que se cometen.","D":"Que cuando se aprende de la experiencia, la historia puede cambiar."},"correcta":"D","tecnica":"'Con el paso del tiempo' apunta a una causa externa (los años), no a las personas. Descarta lo que no sea temporal.","explicacion":"De acuerdo con el texto principal, los eventos del pasado vuelven a ocurrir sin que las personas obtengan algún provecho de las enseñanzas que resultan de este paso temporal. La instrucción busca una idea implícita o, de otro modo, una idea que, aunque no se dice literalmente en el enunciado, se puede concluir del texto. La opción A propone que los seres humanos aprenden de sus errores, lo cual no puede ser la respuesta correcta porque implica lo contrario a lo planteado en el enunciado. Aprender de los errores sería un ejemplo de aprovechar las lecciones de la historia; esto, según el texto, no ocurre. En la opción B, se expresa que las experiencias dan pie a que la historia se repita. No es posible afirmar esto con certeza porque el texto no desarrolla ningún planteamiento respecto a lo que hace que la historia se repita. La opción C señala el origen de la historia y propone que esta se alimenta de los errores de la historia, pero en el texto no se especifican las causas ni las fuentes que hacen que la historia sea como es. Finalmente, la opción D indica que cuando se adquiere el aprendizaje de la experiencia, la historia puede cambiar, es decir, que si no hay aprendizaje la historia se repite. Así se puede inferir que la historia no se repetiría si los humanos aprendieran de la experiencia, esto es, si aprovecharan las enseñanzas de la historia. Por lo tanto, esta es la clave del ítem."},{"id":12,"area":"Verbal","tema":"Comprensión lectora: idea implícita","enunciado":"Algunos animales expulsan fluidos para delimitar su territorio, otros lo hacen para ahuyentar a sus enemigos y otros más para atraer a miembros del sexo opuesto. En los humanos, el lenguaje es el instrumento que se utiliza para cumplir con esas funciones: al fin y al cabo, todo ser vivo es capaz de transmitir información a través de diferentes formas.","datos":null,"pregunta":"De acuerdo con lo anterior, ¿cuál es una idea implícita en el texto?","opciones":{"A":"El lenguaje transmite más información que los fluidos.","B":"La expulsión de fluidos siempre transmite información.","C":"La información solo se transmite mediante el lenguaje o los fluidos.","D":"La función de algunas conductas animales es transmitir información."},"correcta":"D","tecnica":"Descarta las opciones que generalizan con absolutos ('siempre', 'solo', 'únicamente') cuando el texto habla de 'algunos'.","explicacion":"La instrucción de este ítem solicita extraer una idea implícita del texto, lo cual quiere decir que se llegue a una conclusión a partir de la información proporcionada; por ello, es necesario examinar cada una de las opciones para saber cuál se ajusta mejor a lo requerido. En la opción A se asegura que el lenguaje transmite más información que los fluidos, lo cual no se dice en el encabezado. En ningún momento se comparan los fluidos y el lenguaje en términos de su capacidad para cumplir una función comunicativa. Así pues, la opción A no es la correcta. En la opción B, se generaliza lo expuesto en el texto principal, debido a que se asegura que la expulsión de fluidos siempre puede transmitir información. En el enunciado no aparece una afirmación absoluta, pues solo se habla de los fluidos de ciertos animales. Dado lo anterior, la B tampoco puede ser la respuesta correcta. La opción C sigue la misma línea: generalizar una afirmación sin que el texto proporcione evidencia al respecto. El texto no excluye la posibilidad de que existan otros mecanismos para transmitir información. Inclusive, la generalización va más allá al no especificar que se limita a los animales. Por consiguiente, la C no es la clave. Finalmente, la opción D menciona que algunas conductas animales podrían servir como mecanismos para transmitir información. En el encabezado se indica que los fluidos animales cumplen con diferentes funciones como delimitar su territorio: ahuyentar a los enemigos y atraer a miembros del sexo opuesto. Todo ello es una manera de transmitir información, por lo tanto, esta opción congrega una idea que sí se deriva del texto."},{"id":13,"area":"Verbal","tema":"Comprensión lectora: conclusión con certeza","enunciado":"La meditación reduce el estrés y mejora el funcionamiento de algunas habilidades para concentrarse por largos periodos. Sin embargo, no se ha descubierto un efecto de la meditación sobre la inteligencia en general.","datos":null,"pregunta":"De acuerdo con el texto anterior, ¿qué se puede concluir con certeza?","opciones":{"A":"Que la meditación tenga efectos calmantes.","B":"Que el estrés pueda afectar las habilidades mentales.","C":"Que las habilidades mentales y la inteligencia sean lo mismo.","D":"Que la ciencia se interesa por el efecto de la inteligencia sobre las habilidades mentales."},"correcta":"A","tecnica":"'Con certeza' = lo que el texto afirma o se sigue directamente. Lo 'posible' o 'probable' nunca es la clave.","explicacion":"Para contestar correctamente este ítem, se debe analizar cuál de las opciones se puede concluir con certeza de la información dada en el encabezado y para ello se debe verificar cada opción para descartar o afirmar la respuesta. En la opción B, se plantea que el estrés puede afectar las habilidades mentales, lo cual no se puede extraer del texto, pues el énfasis de la información se concentra en valorar los beneficios de la meditación, no en las consecuencias de los problemas que trata de resolver la meditación. Es posible que exista alguna relación entre el estrés y su afectación en las habilidades mentales, pero esto no es información que aparezca en el texto. Por lo tanto, esta no es la clave del ítem. La opción C propone una igualdad entre las habilidades mentales y la inteligencia, pero de acuerdo con el texto, no existe tal relación. Incluso, en el texto solo se habla de habilidades sin especificar cuáles, y no se comparan con ningún otro elemento. Este razonamiento excluye esta opción como respuesta correcta. La opción D se descarta fácilmente, pues el texto no ofrece detalles sobre el papel de la ciencia en materia de inteligencia, solo se indica que no se ha descubierto el efecto de la meditación en la inteligencia. En consecuencia, esta opción no puede ser la clave. La opción A indica que la meditación tiene efectos calmantes, lo cual sí se concluye del enunciado, pues se dice que la meditación reduce el estrés y mejora la concentración. Por lo tanto, esta es la opción correcta."},{"id":14,"area":"Matematica","tema":"Cuantitativo: problemas con categorías","enunciado":"En un terreno hay 130 árboles, de los cuales 94 son árboles altos y el resto son medianos. Hay 48 árboles jóvenes y un cuarto (1/4) de los árboles medianos son jóvenes.","datos":null,"pregunta":"¿Cuántos de los árboles altos son viejos?","opciones":{"A":"27","B":"36","C":"55","D":"82"},"correcta":"C","tecnica":"Haz una tabla de conteo de doble entrada: primero altos/medianos, y dentro de cada grupo, jóvenes/viejos.","explicacion":"En este ítem se requiere determinar cuántos árboles altos son viejos, pero para encontrar este valor es necesario averiguar cuántos árboles medianos son jóvenes. En primer lugar, se debe notar que hay 36 árboles medianos, ya que el total es 130 y 94 de ellos son altos (130 − 94 = 36). De los árboles medianos, 9 son jóvenes, ya que un cuarto (1/4) de los medianos son jóvenes (36 ÷ 4 = 9). Luego, el encabezado del texto indica que hay 48 árboles jóvenes y que 9 de estos son medianos, por tanto, hay 39 árboles altos que son jóvenes (48 − 9 = 39). Finalmente, como hay 94 árboles altos y 39 de estos son jóvenes, se concluye que hay 55 árboles altos que no tienen esa cualidad (94 − 39 = 55). Por lo tanto, la respuesta correcta es la opción C."},{"id":15,"area":"Verbal","tema":"Comprensión lectora: análisis de proposiciones","enunciado":"El todo es más que la suma de sus partes. Tomando en cuenta la afirmación anterior, lea detenidamente las siguientes proposiciones: 1. Una combinación imposible de ingredientes sería aquella en la que, a partir de la mezcla de harina, sal y levadura, se pudiera obtener una pieza de queso. 2. Un organismo no es meramente un conjunto de órganos, porque la actividad de estos no basta para que el organismo pueda sobrevivir. 3. Un resumen proviene de la identificación de las ideas principales de un texto.","datos":null,"pregunta":"¿Cuál o cuáles de las proposiciones anteriores se adecúan a la afirmación?","opciones":{"A":"Solo la 2.","B":"Solo la 3.","C":"Solo la 1 y la 3.","D":"Solo la 2 y la 3."},"correcta":"A","tecnica":"Parafrasea la afirmación ('el todo es más que la suma de sus partes') y compárala término a término con cada proposición.","explicacion":"A partir de tres postulados, el ítem solicita que se parafrasee: “el todo es más que la suma de sus partes”. La frase indica, en otras palabras, que un ente compuesto por ciertas partes es más que esas partes. Ante este planteamiento, la proposición I es incorrecta porque implica que el todo (pieza de queso) es la suma de sus partes (ingredientes mezclados). Igualmente, la proposición III no corresponde a lo solicitado porque propone la conformación de un todo (resumen) a partir de sus partes (las ideas principales). Esto descarta las opciones B, C y D. Por su parte, la proposición A es acertada, ya que un todo (organismo) es más que la suma de sus órganos (no basta con estos órganos para que el organismo sobreviva)."},{"id":16,"area":"Matematica","tema":"Lógica: principio del palomar","enunciado":"En un vivero hay 60 árboles pequeños de diferentes tipos: 31 guanacastes, 19 cenízaros y 10 almendros. Los árboles serán sembrados en una finca por 30 estudiantes. Cada estudiante sembrará dos árboles.","datos":null,"pregunta":"Según la información anterior, ¿cuál de las siguientes situaciones ocurrirá con certeza?","opciones":{"A":"Uno o más estudiantes sembrarán dos cenízaros.","B":"Uno o más estudiantes sembrarán dos guanacastes.","C":"Uno o más estudiantes sembrarán un guanacaste y un cenízaro.","D":"Uno o más estudiantes sembrarán un guanacaste y un almendro."},"correcta":"B","tecnica":"Principio del palomar: si hay más objetos que lugares, alguien recibe más de uno. 31 guanacastes en 30 parejas obligan a una pareja de 2.","explicacion":"De acuerdo con el ítem, cada uno de los 30 estudiantes sembrará dos árboles. Entre todos sembrarán 31 guanacastes. No hay certeza de que se cumpla la opción A, pues los 19 cenízaros pueden ser sembrados por 19 estudiantes distintos. La opción C tampoco es correcta pues 9 estudiantes pueden sembrar 2 cenízaros cada uno y otro estudiante puede sembrar otro cenízaro y un almendro. La opción D se descarta al considerar que 10 estudiantes pueden sembrar un almendro y un cenízaro. Finalmente, la opción B es la respuesta correcta porque, al menos, un estudiante tiene que sembrar dos guanacastes; si se intenta que ninguno de los estudiantes siembre 2 guanacastes, se alcanzaría la cifra de apenas 30 de estos árboles."},{"id":17,"area":"Verbal","tema":"Lógica: certeza y disposición espacial","enunciado":"En una habitación de cuatro paredes, dos tienen una pintura, otra un televisor y la otra está vacía.","datos":null,"pregunta":"Respecto a la ubicación de los objetos, ¿cuál de las siguientes opciones, con certeza, es verdadera?","opciones":{"A":"Las pinturas están en paredes opuestas.","B":"Las pinturas están en paredes contiguas.","C":"El televisor está en una pared opuesta a la pared vacía.","D":"Una pintura está en una pared contigua a la pared vacía."},"correcta":"D","tecnica":"En los ítems de certeza, revisa los casos posibles (aquí: opuestas y contiguas) y busca la opción que se cumple en todos.","explicacion":"En este ítem hay que determinar qué afirmación es verdadera respecto a la ubicación de los objetos en las paredes de una habitación, por lo que conviene analizar cada opción. La opción A no es correcta porque las pinturas pueden estar en paredes contiguas: en ese caso, una de las dos paredes restantes tiene el televisor y la otra está vacía. La opción B se descarta porque las pinturas también pueden estar en paredes opuestas, con el televisor y la pared vacía en las otras dos. Con el mismo caso del análisis de la opción A se descarta la C, ya que la pared vacía y la del televisor quedan contiguas y no opuestas. Como ninguna de las anteriores se cumple siempre, la respuesta es la opción D. Se comprueba con los dos casos posibles: que las dos pinturas estén en paredes opuestas o en paredes contiguas. En ambos casos la pared vacía siempre queda contigua a una pared con una pintura, y solo la opción D afirma eso sin pedir condiciones adicionales."},{"id":18,"area":"Verbal","tema":"Comprensión lectora: idea implícita","enunciado":"La humanidad no se distribuye uniformemente en la Tierra, ya que existen zonas densamente pobladas y otras en las que viven apenas unos cuantos cientos de personas. A lo largo de la historia, el clima, la calidad del suelo, la disponibilidad de animales domesticables, entre otros, han hecho que los humanos deban migrar hacia lugares en los que sus probabilidades de sobrevivir sean mayores. Como evidencia de esto, existen los desiertos y los polos del Planeta, en donde habitan pocos humanos, con respecto a otros territorios.","datos":null,"pregunta":"¿Cuál idea está implícita en el texto anterior?","opciones":{"A":"Los factores sociales influyen en la migración poblacional.","B":"En las zonas poco pobladas, las probabilidades de sobrevivir son menores.","C":"La migración poblacional no implica una distribución poblacional heterogénea.","D":"La probabilidad de sobrevivir no es independiente de las condiciones climáticas."},"correcta":"B","tecnica":"Una idea implícita no puede agregar información externa ni excluir lo que el texto sí menciona.","explicacion":"El ítem propone que los humanos se distribuyen en la tierra de acuerdo con ciertos requisitos que procuran su sobrevivencia, entre ellos: el clima, la disposición de animales domésticos, el suelo. De esta afirmación se desprende que en zonas sin estas condiciones el ser humano no se ha instalado. La pregunta solicita que se infiera una idea del texto. La opción A expone factores asociados con la sobrevivencia. Aunque el factor social estaría incluido en esta acción no es el único y, además, en el texto enfatiza sobre la incidencia del clima en la conducta del ser humano, por lo tanto, esta no es la respuesta correcta. La opción C contiene información opuesta a la que proporciona el ítem, ya que la migración poblacional implica una distribución heterogénea, afirmación entendida desde el inicio del párrafo con “La humanidad no se distribuye uniformemente en la Tierra”. Ante esto, se descarta. La opción D no puede concluirse, aunque contiene información verdadera, excluye otros factores (además de las condiciones climáticas) como la calidad del suelo, la disponibilidad de animales, etc. Finalmente, la opción B es la clave, puesto que se puede inferir que las zonas poco pobladas no son habitadas porque no cuentan con las condiciones óptimas para sustentar la vida humana."},{"id":19,"area":"Verbal","tema":"Comprensión lectora: conclusión con certeza","enunciado":"Los esquimales viven en algunas regiones de Norteamérica y Siberia. En Canadá, se definen a sí mismos como inuit, que significa el pueblo, ya que esquimal parece ser un término del idioma algonquino, que significa devoradores de carne cruda.","datos":null,"pregunta":"¿Cuál de las siguientes opciones se expresa, con certeza, en el texto anterior?","opciones":{"A":"Que los inuit son carnívoros.","B":"Que inuit y esquimal son palabras opuestas.","C":"Que algunos esquimales se identifican con la palabra inuit.","D":"Que los inuit se asumen como comedores de carne cruda."},"correcta":"C","tecnica":"'Se definen a sí mismos' es evidencia directa; lo que el texto no afirma (que sean carnívoros) no puede ser la clave.","explicacion":"Para resolver este ítem, debe encontrarse la única opción que se puede afirmar con certeza. El texto principal dice que los esquimales se denominan a sí mismos como “inuit”, que significa “el pueblo”, ya que “esquimal” significa “devoradores de carne cruda”. La opción A no es la clave. En esta opción se afirma que los inuit son carnívoros; sin embargo, el texto no confirma que efectivamente sean carnívoros. La opción B tampoco corresponde a la clave porque “inuit” y “esquimal” son palabras diferentes, pero nada en el texto principal permite afirmar que sean términos opuestos. La opción D no es la clave. En esta opción se afirma que los inuit se asumen como comedores de carne cruda, sin embargo, esto no se indica en el texto principal. La opción C propone que algunos esquimales se identifican con la palabra “inuit”; según el texto, los esquimales en Canadá “se definen a sí mismos como inuit”. Esta, por lo tanto, constituye la opción correcta."},{"id":20,"area":"Verbal","tema":"Comprensión lectora: síntesis del texto","enunciado":"Algunos magos afirman que, cuando visitan un bosque o un desierto, son capaces de sentir y ver el silencio, como si la ausencia de sonido tuviera alguna propiedad, aún no descubierta por la ciencia, más allá de lo meramente auditivo. Ahora bien, también es posible encontrar personas que ni siquiera creen en la existencia de los átomos, las ondas sonoras ni de ningún otro tipo de cosas invisibles para el ser humano, cuya percepción solo puede darse a través de instrumentos tecnológicos especiales.","datos":null,"pregunta":"¿Cuál opción resume el texto anterior?","opciones":{"A":"Una contradicción entre ciencia y magia.","B":"La desconfianza de la ciencia en cuanto a las percepciones de los magos.","C":"La imposibilidad de percibir cosas muy pequeñas sin instrumentos tecnológicos.","D":"Un contraste con respecto a la confianza que tienen las personas sobre las cosas no visibles."},"correcta":"D","tecnica":"Para resumir, busca la idea que engloba a las dos partes del texto; si una opción solo habla de una parte, no es la síntesis.","explicacion":"En este ítem, debe buscarse una opción que presente una síntesis del texto principal. La opción A no es la clave. En ninguna parte del texto principal se sostiene que la ciencia se oponga a la magia. La opción B introduce el término “desconfianza”, que podría relacionarse con la resistencia a creer en cosas imperceptibles. No obstante, dicho término se aplica para calificar la actitud de los científicos hacia las percepciones de los magos por lo que esta opción no es la correcta. La opción C no es la clave. Se sabe que los objetos sumamente pequeños (bacterias, virus, átomos, etc.) solamente pueden detectarse mediante cierto tipo de instrumentos. Sin embargo, tal afirmación no se presenta en el enunciado y, por lo tanto, no corresponde a una síntesis del texto principal. La opción D es la clave. La idea principal del texto se organiza alrededor del hecho de que haya una diferencia (o contraste) en cuanto a la disposición a creer en objetos no perceptibles por los sentidos humanos."},{"id":21,"area":"Matematica","tema":"Cuantitativo: razones y proporciones","enunciado":"Patricia quiere comprar un desayuno. Ella tiene monedas tipo P y tipo Q para pagar el desayuno. De las monedas tipo P necesitaría 245. Por cada 7 monedas tipo P necesitaría 5 tipo Q.","datos":null,"pregunta":"¿Cuántas monedas tipo Q necesita Patricia?","opciones":{"A":"35","B":"49","C":"168","D":"175"},"correcta":"D","tecnica":"Lee primero la razón (7 P por cada 5 Q), divide para saber cuántos grupos hay y solo después multiplica.","explicacion":"El ítem indica que Patricia desea comprar un desayuno con algún tipo de moneda: P o Q. Se advierte, además, que de las monedas tipo P necesita 245. Con esta información, se solicita determinar cuántas monedas tipo Q necesita. Dado que por cada 7 monedas tipo P se necesitan 5 del tipo Q, lo primero que se debe determinar es en cuántos grupos de 7 monedas tipo P se pueden dividir las 245 monedas. Para esto se calcula 245 ÷ 7 = 35. Por lo anterior, se concluye que se pueden hacer 35 grupos de 7 monedas tipo P. Ahora, para determinar el número de monedas tipo Q necesarias, se debe calcular 35 * 5 = 175. Lo anterior significa que se requieren 175 monedas tipo Q para comprar el desayuno, por lo que la respuesta correcta es la opción D."},{"id":22,"area":"Matematica","tema":"Cuantitativo: sucesiones y patrones","enunciado":"Analice la siguiente secuencia y encuentre la ley que se da en ella: 0, 3, 8, 15, 24,...","datos":null,"pregunta":"De acuerdo con la ley que se da en la secuencia anterior, ¿cuál es el número correspondiente a la posición 11?","opciones":{"A":"99","B":"120","C":"132","D":"143"},"correcta":"B","tecnica":"En sucesiones, calcula las diferencias entre términos consecutivos: si forman un patrón (impares), acumula ese patrón.","explicacion":"El ítem presenta la secuencia de números 0, 3, 8, 15, 24,... A partir de la ley que se da en ellos, se debe averiguar el número correspondiente a la posición 11. Al analizar la secuencia se comprende lo siguiente: • Al calcular la resta entre el segundo término (3) y el primero (0) se obtiene 3 − 0 = 3 • Al calcular la resta entre el tercero término (8) y el segundo (3) se obtiene 8 − 3 = 5 • Al calcular la resta entre el cuarto término (15) y el tercero (8) se obtiene 15 − 8 = 7 • Al calcular la resta entre el quinto término (24) y el cuarto (15) se obtiene 24 − 15 = 9 Al analizar los resultados de las restas, se entiende que las cifras son números impares consecutivos, por lo que la secuencia se puede escribir de la siguiente forma: T1 = 0 T2 = 3 T3 = 3 + 5 T4 = 3 + 5 + 7 T5 = 3 + 5 + 7 + 9 Por medio de la escritura de las secuencias, se observa, con la escritura de la secuencia que, a partir del segundo término, el valor de cada uno es la suma de números impares consecutivos. Entonces, lo que se debe averiguar es cuántos números son. Para esto se observa que el número de término es uno mayor a la cantidad de números impares que se suman. Por ejemplo, para T2 es un número, para T3 son dos números, para T4 se suman 3, etc. Por el análisis anterior, se concluye que T11 es la suma de los 10 números impares desde el 3, lo cual es igual a 3 + 5 + 7 + 9 + 11 + 13 + 15 + 17 + 19 + 21 = 120 Por lo tanto, la respuesta correcta es la opción B."},{"id":23,"area":"Matematica","tema":"Cuantitativo: razones de peso","enunciado":"El peso de 2 platos es igual al peso de 3 botellas y el peso de 3 vasos es igual al de 2 botellas.","datos":null,"pregunta":"¿Cuántas botellas se necesitan para tener el peso de 8 platos y 6 vasos?","opciones":{"A":"12","B":"16","C":"21","D":"34"},"correcta":"B","tecnica":"Convierte todo a una sola unidad (botellas) y suma: 8 platos = 12 botellas y 6 vasos = 4 botellas.","explicacion":"El ítem anterior pregunta cuántas botellas juntas tendrán el mismo peso de 8 platos y 6 vasos juntos. Nótese que 8 platos corresponden a 4 grupos de 2 platos, es decir, 4 veces el peso de 2 platos, que sería lo mismo que 4 veces el peso de 3 botellas. Se debe recordar que el peso de 2 platos es igual al peso de 3 botellas. Por lo anterior, 4 veces el peso de 3 botellas es el peso de 12 botellas; entonces, 8 platos pesan lo mismo que 12 botellas. Por otra parte, 6 vasos equivale al mismo peso que 2 grupos de 3 vasos, es decir, 2 veces el peso de 3 vasos, que sería igual a 2 veces el peso de 2 botellas (el peso de 3 vasos es igual al peso de 2 botellas). Por lo anterior, 2 veces el peso de 2 botellas es el peso de 4 botellas. Entonces, 6 vasos pesan lo mismo que 4 botellas. Finalmente, 8 platos y 6 vasos pesarían lo mismo que 12 botellas más 4 botellas, es decir, 16 botellas. Ante estos razonamientos, la respuesta correcta es la opción B."},{"id":24,"area":"Verbal","tema":"Comprensión lectora: conclusión con certeza","enunciado":"Cada vez que un ser humano lucha contra la injusticia o actúa para mejorar la suerte de otros, transmite esperanza y mantiene vivo el valor de la solidaridad.","datos":null,"pregunta":"Con respecto a la solidaridad, ¿cuál de las siguientes opciones se expresa, con certeza, en el texto anterior?","opciones":{"A":"Que es siempre necesaria para la humanidad.","B":"Que es siempre obstruida por la injusticia.","C":"Que es siempre aliada de la esperanza.","D":"Que es siempre enemiga del egoísmo."},"correcta":"D","tecnica":"Si la opción dice 'siempre', debe poder deducirse del texto sin incorporar conceptos externos como el egoísmo.","explicacion":"En el texto se afirma que luchar contra la injusticia o tratar de mejorar la vida de otras personas promueve la esperanza y conserva la solidaridad. Para resolver correctamente este ítem, se debe elegir una opción que puede concluirse sin duda acerca de la solidaridad. En la opción A, se indica que la solidaridad es un valor necesario para la humanidad, pero en ninguna parte del enunciado menciona esto ni expone la importancia de su permanencia. Por lo tanto, esta opción se descarta como clave. La opción B sostiene una idea que no se extrae del texto, pues señala que la injusticia impide la solidaridad, pero el encabezado solo indica que la solidaridad es un valor que se mantiene en la medida en que se luche contra la injusticia, lo cual no implica que con la existencia de la solidaridad se acabe la injusticia. Por lo anterior, esta opción no es la respuesta correcta. La opción C establece que en todo momento la solidaridad es aliada de la esperanza y aunque podría pensarse esto como posible, en el enunciado no hay información suficiente para señalar que con certeza una (la solidaridad) depende de la otra (la esperanza). Por ello, la opción C es una respuesta incorrecta. Finalmente, la opción D plantea que la solidaridad es enemiga del egoísmo. Si ayudar a los demás mantiene vivo el valor de la solidaridad, tal y como se plantea en el texto, esta debe ser opuesta o incompatible con el egoísmo, en virtud de lo cual una persona solamente busca su propio beneficio individual. Por lo tanto, esta es la clave del ítem."},{"id":25,"area":"Matematica","tema":"Cuantitativo: sucesiones (álgebra)","enunciado":"Analice la siguiente secuencia y encuentre la ley que se da en ella: S<sub>1<\/sub> = 1; S<sub>2<\/sub> = S<sub>1<\/sub> + 2; S<sub>3<\/sub> = S<sub>2<\/sub> + 3; S<sub>4<\/sub> = S<sub>3<\/sub> + 4; S<sub>5<\/sub> = S<sub>4<\/sub> + 5; S<sub>6<\/sub> = S<sub>5<\/sub> + 6.","datos":null,"pregunta":"De acuerdo con la ley que se da en la secuencia anterior, ¿cuál de las siguientes opciones representa una expresión equivalente a S<sub>12<\/sub>?","opciones":{"A":"S<sub>10<\/sub> + 22","B":"S<sub>10<\/sub> + 23","C":"S<sub>11<\/sub> + 22","D":"S<sub>11<\/sub> + 23"},"correcta":"B","tecnica":"Si piden 'expresión equivalente', puedes descomponer el último término hasta llegar exactamente a una de las opciones.","explicacion":"Este ítem pide encontrar una expresión equivalente a S<sub>12<\/sub>. Al revisar la secuencia se obtiene la ley: el término actual es igual al término anterior más el valor de su posición (S1 = 1; S2 = S1 + 2; S3 = S2 + 3; y así sucesivamente). Con esa ley, el término 12 sería S12 = S11 + 12, pero esa expresión no aparece entre las opciones. Como lo que se busca es una expresión equivalente, se puede seguir retrocediendo: como S11 = S10 + 11, se sustituye y se obtiene S12 = S11 + 12 = S10 + 11 + 12 = S10 + 23. Esa es exactamente la opción B. En 20 segundos: si la opción directa (S11 + 12) no está, expande un paso más."},{"id":26,"area":"Verbal","tema":"Comprensión lectora: relaciones en el texto","enunciado":"En la literatura hispanoamericana de otro momento, el decaimiento del paisaje se explica por la presentación del personaje. El tema que domina la literatura actual, es el ser humano.","datos":null,"pregunta":"En el contexto de la literatura hispanoamericana contemporánea, ¿cómo se presenta el paisaje en relación con el ser humano?","opciones":{"A":"El paisaje ha sido desplazado.","B":"El paisaje ha sido transformado.","C":"El paisaje ha sido sobrevalorado.","D":"El paisaje ha desaparecido de la literatura."},"correcta":"A","tecnica":"'Decaimiento' y 'desplazado' no es lo mismo que 'desaparecido': distingue lo que el texto afirma de lo que exagera.","explicacion":"Para este ítem se solicita responder a una pregunta directa del texto, por ello es necesario verificar cuál es la respuesta, de las cuatro opciones ofrecidas a fin de reconocer la idea implícita del texto. La opción B señala que la transformación determina la relación entre el paisaje y el ser humano, pero esta no puede ser la respuesta correcta, porque en el texto se habla de una sustitución del paisaje por el personaje, no de un cambio en el paisaje. La opción C propone que el paisaje ha sido sobrevalorado, lo cual no se extrae del texto, porque más bien se dice que el paisaje va en decaimiento, es decir, pierde su protagonismo. La opción D dice que el paisaje ha desaparecido de la literatura, pero esta tampoco puede ser la respuesta correcta porque en el encabezado no se habla de una ausencia total del paisaje en la literatura, sino de su decadencia. La opción A indica que el paisaje ha sido desplazado y esta opción sí puede ser la respuesta correcta, porque en el texto se habla en términos de decaimiento. Este cambio invita a pensar en que, efectivamente, el paisaje es sustituido o desplazado por otro aspecto."},{"id":27,"area":"Verbal","tema":"Comprensión lectora: analogías","enunciado":"Un ave se distingue, en la mayoría de los casos, por tener alas, plumas, un pico alargado y poder volar.","datos":null,"pregunta":"De acuerdo con la lógica del texto anterior, ¿qué distingue generalmente a un cerdo?","opciones":{"A":"Tener cuatro patas, pelos, hocico dentado y poder caminar.","B":"Tener pelos, hocico redondo, cuatro patas y poder caminar.","C":"Tener pelos, cuatro pezuñas, hocico redondo y poder caminar.","D":"Tener hocico redondo, cuatro patas, cuatro pezuñas y poder correr."},"correcta":"B","tecnica":"En analogías busca el equivalente funcional de cada rasgo, no la palabra parecida: plumas↔pelos, pico↔hocico, alas↔patas.","explicacion":"Para resolver este ítem, debe encontrarse cuál es el equivalente, en el cerdo, de cada característica señalada para el ave. La opción A no es la clave. El hocico dentado no tiene un equivalente en las características mencionadas en el caso del ave. La opción C tampoco corresponde a la clave. Las pezuñas no son una extremidad completa, por lo tanto, no son equivalentes a las alas del ave. La opción D no es la clave. En esta opción, también se incluyen las pezuñas; además, no se presenta un equivalente para las plumas del ave. La B es la clave. Todos los pares de características son equivalentes. Los pelos y las plumas cubren el cuerpo de los animales; el hocico redondo y el pico alargado se refieren a la forma de esa parte del cuerpo; las patas son extremidades, al igual que las alas; poder caminar sería un equivalente próximo a volar."},{"id":28,"area":"Verbal","tema":"Comprensión lectora: idea implícita","enunciado":"El enorme aumento de la producción de los últimos años ha transformado a los países industrializados, por lo cual en ellos un número creciente de personas puede comprar cada vez más cosas y de más variado tipo.","datos":null,"pregunta":"En resumen, ¿cómo pueden definirse los países industrializados?","opciones":{"A":"Como regiones de fuerte industrialización.","B":"Como mercados de la tecnología.","C":"Como territorios de alto consumo.","D":"Como sociedades prósperas."},"correcta":"C","tecnica":"Para resumir, elige la idea más concreta y verificable: si el texto dice que compran más y de más tipos, es 'alto consumo'.","explicacion":"En este ítem, se solicita escoger la opción que caracteriza, de manera concisa, los países industrializados referidos en el texto. Se dice que dichos países han aumentado su producción, lo cual ha permitido que sus habitantes tengan acceso a mayor cantidad de artículos y a mayor variedad. La opción A no es la clave. El texto menciona que estos países han aumentado su producción recientemente, pero no se sabe si este incremento va de la mano con un nuevo y fuerte proceso de industrialización. Además, tampoco se sabe si estos países se encuentran geográficamente cerca para poder agruparlos en regiones. La descripción de esta opción resulta poco adecuada para referirse a los países industrializados. La opción B no es la clave porque el incremento en la producción no se vincula de ninguna forma con mercados específicos, como el de tecnología, en este caso. La información se presenta de términos generales. La opción D no es la clave. No es posible afirmar que las personas en estos países vivan mejor. Tener mayores posibilidades de acceso a más bienes, y de una forma más variada, no necesariamente implica que haya prosperidad en general. Finalmente, la opción C es la clave. Según el texto, el aumento de la producción ha tenido como consecuencia que las personas puedan comprar más artículos y de distinto tipo. Es decir, en estos países el consumo se ha extendido, por esta razón, se pueden describir como territorios de alto consumo."},{"id":29,"area":"Matematica","tema":"Cuantitativo: sucesiones y patrones","enunciado":"Considere la siguiente secuencia de igualdades: N<sub>1<\/sub> = 2; N<sub>2<\/sub> = 2; N<sub>3<\/sub> = 6; N<sub>4<\/sub> = 6; N<sub>5<\/sub> = 10; N<sub>6<\/sub> = 10;...","datos":null,"pregunta":"Si se continúa la secuencia, ¿a cuánto equivale N<sub>116<\/sub>?","opciones":{"A":"226","B":"228","C":"230","D":"232"},"correcta":"C","tecnica":"Detecta el patrón en los índices, no en los valores: los impares valen el doble y los pares repiten al anterior.","explicacion":"En la secuencia brindada, se observa que al término N1 le corresponde el número 2; al término N2, el número 2; al término N3, el número 6 y así, sucesivamente. Para resolver el ítem se debe encontrar cuál número le corresponde al término N con subíndice 116 (N116). Se observa que los términos con subíndice impar equivalen al doble del subíndice, es decir, N1 es igual a 2, N3 es igual a 6, N5 es igual a 10; si se continúa con la secuencia, N11 sería igual 22 y así, sucesivamente. Además, los términos con subíndice par equivalen al término anterior, así, por ejemplo, a N2 le corresponde el mismo número que a N1, a N4 le corresponde el mismo número que a N3. De esta forma si N11 es igual a 22, entonces, a N12 también le corresponde el número 22. De lo anterior se concluye que a N116, por tener subíndice par, le corresponde el mismo número que N115. Por otro lado, a N115 le corresponde el doble del subíndice, es decir, 230. Entonces, a N116 también le corresponde el número 230. Por lo anterior, la respuesta correcta es la opción C."},{"id":30,"area":"Verbal","tema":"Comprensión lectora: idea implícita","enunciado":"Un académico tiende a descalificar la obra de los historiadores P, Q y R. Al historiador P lo etiqueta como tradicional, pese a la ruptura que supusieron sus trabajos sobre la historia electoral de un país; al historiador Q lo cuestiona mediante la estrategia de generalizar sus conclusiones a toda la sociedad, a pesar de que el historiador Q las circunscribe a la vida política; y al historiador R lo responsabiliza por inspirar interpretaciones de los grupos subalternos como robots, planteamiento que no tiene la menor base en la evidencia disponible.","datos":null,"pregunta":"¿Cuál de las siguientes opciones presenta una idea implícita del texto anterior?","opciones":{"A":"La obra del historiador R supuso una ruptura, por su tradicionalismo, en la historia electoral.","B":"Las obras de los tres historiadores se relacionan con la política, la sociedad y la cultura.","C":"Los planteamientos del historiador Q se refieren únicamente a la política.","D":"El polémico académico desmiente las afirmaciones de los historiadores."},"correcta":"C","tecnica":"Ojo: la clave es lo que el texto afirma sobre cada historiador, no lo que el académico le atribuye sin pruebas.","explicacion":"En este ítem, se busca determinar la opción válida, a partir de la información explícita (no literal) del texto. La opción A no es la clave. R no analiza la historia electoral, el interesado en este tema en particular es P. La opción B no es la clave. La obra de P se centra en el aspecto político, específicamente en la historia electoral. Q circunscribe las conclusiones de su obra a la vida política. R se dedica al estudio de grupos subalternos, por lo tanto, a la cultura. Como se observa, cada una de las obras de los historiadores se interesa en particular por un aspecto, no por los tres al mismo tiempo. La D no es la clave. El polémico académico no desmiente las afirmaciones de los historiadores. En todos los casos, él etiqueta, cuestiona o responsabiliza a sus colegas, pero no presenta pruebas concretas o argumentaciones convincentes contra ellos. La opción C es la clave, pues el historiador Q circunscribió sus conclusiones no a la sociedad en general, como erróneamente apunta cierto académico, sino a la vida política en específico."},{"id":31,"area":"Verbal","tema":"Comprensión lectora: idea implícita negativa","enunciado":"La crítica literaria intenta ofrecer un punto de vista, siempre muy personal, del lugar que ocupa un texto dentro del contexto. No analiza si un texto es bonito o feo, sino el sentido del texto y su relación con el momento que se vive.","datos":null,"pregunta":"¿Cuál de las siguientes opciones no es una idea implícita del texto anterior?","opciones":{"A":"La crítica literaria es subjetiva.","B":"La crítica literaria juzga los textos por los temas que estos tratan.","C":"El papel de la crítica literaria se relaciona con la comprensión de la obra.","D":"Las relaciones entre el texto y el contexto le corresponden a la crítica literaria."},"correcta":"B","tecnica":"Cuando piden lo que NO es implícita, busca la opción que introduce un criterio que el texto nunca menciona.","explicacion":"En este ítem, se debe indicar la opción que no se infiere con base en la información dada. Es decir, la clave será aquella que no se concluye a partir del texto. La opción A no es la clave. Esta opción es una afirmación derivada del texto. En este se dice que la crítica literaria ofrece un punto de vista siempre muy personal; es, por lo tanto, subjetiva. La C no es la clave, ya que se concluye del texto. En efecto, la crítica literaria analiza el sentido del texto, labor que la relaciona directamente con la comprensión de la obra. La opción D no cumple la función de clave, pues también se infiere del texto. En sus primeras oraciones, se afirma que la crítica literaria se ocupa del texto dentro del contexto. O sea, establece relaciones entre ambos aspectos. Finalmente, se sabe que la crítica literaria estudia el sentido del texto en un contexto específico, pero no se menciona que su análisis tome en cuenta de algún modo los temas de los textos. Entonces, la opción B no se infiere del encabezado, lo cual la convierte en la clave."},{"id":32,"area":"Matematica","tema":"Cuantitativo: expresión numérica","enunciado":"Una profesora tenía 8000 gapes para comprar lápices y borradores. Ella compró 6 lápices para cada uno de sus 4 estudiantes. El número de borradores que compró fue la tercera parte del número de lápices. Cada borrador le costó 125 gapes y cada lápiz, 250 gapes.","datos":null,"pregunta":"¿Cuál es una expresión que permite obtener la cantidad de gapes que le sobraron a la profesora?","opciones":{"A":"8000 − 24 * 250 − 8 * 125","B":"8000 − 8 * 250 − 24 * 125","C":"8000 − 24 * 250 + 8 * 125","D":"8000 + 8 * 250 − 24 * 125"},"correcta":"A","tecnica":"Primero cuenta los objetos (4 × 6 = 24 lápices, 24 ÷ 3 = 8 borradores) y después arma la expresión: total menos gastos.","explicacion":"En este ítem se debe obtener la cantidad de gapes que le sobró a una profesora después de comprar algunos lápices y borradores para 4 de sus estudiantes. La cantidad de gapes que tiene la profesora es 8000 y a estos se les debe restar el número exacto de lo que gastó en la compra de los lápices y los borradores, de modo que el siguiente paso es buscar la cifra exacta de lo que gastó. La profesora compró 6 lápices para cada uno de los 4 estudiantes, 4 * 6 lápices, es decir, 24 lápices. Ahora, el número de borradores que compró es la tercera parte del número de lápices, es decir: 24 ÷ 3, entonces, compró 8 borradores. Una vez obtenidas las cantidades de lápices y borradores, se buscan expresiones que indiquen la cantidad de gapes que gastó: • Como cada lápiz cuesta 250 gapes y, como compró 24 lápices, en ellos gastó 24 * 250 gapes. • Dado que cada borrador cuesta 125 gapes y, como compró 8 borradores, en estos gastó 8 * 125 gapes. Estas expresiones indican que la cantidad de gapes que le sobró a la profesora se puede escribir de la siguiente manera: 8000 − 24 * 250 − 8 * 125 Por lo tanto, la respuesta correcta es la opción A."},{"id":33,"area":"Matematica","tema":"Cuantitativo: divisibilidad","enunciado":"En un parque se necesitan voluntarios todas las semanas. Para realizar las actividades cada semana los voluntarios se dividen en dos grupos; uno de 16 y otro de 10. Todos los voluntarios son diferentes cada semana.","datos":null,"pregunta":"¿Cuál es el número mínimo de semanas que debe transcurrir para que el parque reciba una cantidad de voluntarios divisible por 6?","opciones":{"A":"2","B":"3","C":"4","D":"5"},"correcta":"B","tecnica":"Para el mínimo de semanas, ve sumando 26 (16 + 10) y revisa el residuo al dividir entre 6 hasta que dé 0.","explicacion":"En este ítem se debe averiguar cuántas semanas deben transcurrir, como mínimo, para que, en el parque, se reciba una cantidad de voluntarios divisible por 6, es decir, que al realizar la división por 6 el residuo sea 0. Se sabe que el parque recibe dos grupos de 16 y 10 voluntarios, es decir, 26 voluntarios en total; además, que cada semana cambian todos los voluntarios. En la primera semana se han recibido 26 voluntarios. Como 26 no es divisible por 6, pues 26 = 4 * 6 + 2, se debe analizar lo que ocurre en la segunda semana. En la segunda semana se han recibido los 26 voluntarios de la primera semana, más los 26 voluntarios de la segunda semana. Estos suman en total 52 voluntarios y 52 no es divisible por 6, pues 52 = 8 * 6 + 4. En la tercera semana se han recibido 26 voluntarios, más los 52 de las primeras dos semanas por lo que se tienen 78 voluntarios, y 78 es divisible por 6, pues 78 = 13 * 6 + 0. Este razonamiento indica que la respuesta correcta es B."},{"id":34,"area":"Matematica","tema":"Cuantitativo: fracciones y posibilidades","enunciado":"Camila tiene 1 frasco completamente lleno de miel. Ella quiere vaciar toda la miel del frasco en 4 recipientes pequeños.","datos":null,"pregunta":"Según la información anterior, ¿cuál de las siguientes opciones es imposible que suceda?","opciones":{"A":"Los cuatro recipientes quedarían con la misma cantidad de miel.","B":"Dos recipientes quedarían con la misma cantidad de miel y los otros dos recipientes quedarían con cantidades distintas de miel.","C":"Dos recipientes quedarían cada uno con una sexta parte de la miel, uno con la mitad de la miel y el otro con la tercera parte de la miel.","D":"Dos recipientes quedarían cada uno con una tercera parte de la miel y los otros dos quedarían cada uno con una sexta parte de la miel."},"correcta":"C","tecnica":"En 'imposible que sucedan', convierte cada opción a fracción del total y verifica que la suma de las cuatro sea exactamente 1.","explicacion":"Camila debe vaciar todo el frasco (la miel completa = 1) en cuatro recipientes pequeños, así que la opción correcta es la única cuyas cuatro cantidades suman exactamente 1. La opción A es posible: un cuarto en cada recipiente (1/4 + 1/4 + 1/4 + 1/4 = 1). La opción B también es posible: por ejemplo, la mitad en un recipiente (1/2), un cuarto en otro (1/4) y un octavo en cada uno de los dos restantes (1/8 + 1/8); así dos recipientes tienen la misma cantidad y los otros dos cantidades distintas, y la suma es 1/2 + 1/4 + 1/8 + 1/8 = 1. La opción D es posible: dos sextos y dos sextos, más un sexto y un sexto (2/6 + 2/6 + 1/6 + 1/6 = 1). La opción C es imposible: un sexto, un sexto, la mitad (3/6) y un tercio (2/6) suman siete sextos, y 1/6 + 1/6 + 3/6 + 2/6 = 7/6, que es más que toda la miel del frasco. Por eso la respuesta es la opción C."},{"id":35,"area":"Matematica","tema":"Cuantitativo: múltiplos y residuos","enunciado":"Una empresa debe entregar a un comedor estudiantil una cantidad de frijoles. Las entregas de frijoles se realizarán cada 150 días. La primera entrega se hará un miércoles.","datos":null,"pregunta":"¿Qué día de la semana se realizará la tercera entrega de frijoles al comedor estudiantil?","opciones":{"A":"Lunes.","B":"Martes.","C":"Miércoles.","D":"Jueves."},"correcta":"B","tecnica":"Los días de la semana se repiten cada 7: calcula los días transcurridos (150 × 2 = 300) y el residuo al dividir entre 7.","explicacion":"Este ítem solicita averiguar el día de la semana en que se hará la tercera entrega de frijoles a un comedor estudiantil. El día de la primera entrega será el miércoles, 7 días después volverá a ser un miércoles; igualmente, 14 y 21 días después será un miércoles. Esto indica que el ciclo se repite cada 7 días, es decir, cada cantidad de días que sea múltiplo de 7 corresponderá a un miércoles. Las entregas se realizarán cada 150 días, por lo que a la tercera deberán transcurrir 300 días. Por tanto, se debe determinar el múltiplo de 7 más cercano a 300 y menor a él. Al dividir 300 por 7 da 42 como cociente y 6 como residuo, es decir 300 = 42 * 7 + 6. El múltiplo de 7 más cercano a 300 y menor a él está representado por 42 * 7 = 294. Lo anterior indica que pasados 294 días, volverá a ser miércoles, si se suman 6 días para llegar a los 300, debe ser martes. Por lo anterior, la tercera entrega de frijoles al comedor estudiantil se realizará un martes. Por lo tanto, la respuesta correcta es opción B."},{"id":36,"area":"Verbal","tema":"Comprensión lectora: conclusión con certeza","enunciado":"Desde la Antigüedad, el ser humano ha utilizado plantas medicinales para tratar enfermedades. En la actualidad, sus principios activos son importantes en la mayoría de medicamentos de las industrias farmacéuticas.","datos":null,"pregunta":"¿Cuál de las siguientes afirmaciones se concluye, con certeza, del texto anterior?","opciones":{"A":"Las plantas medicinales han mejorado la salud de los seres humanos desde la Antigüedad.","B":"El ser humano ha combatido las enfermedades únicamente con plantas medicinales.","C":"Las plantas medicinales son compuestos utilizados en la farmacéutica actual.","D":"Las medicinas están hechas a base de plantas naturales."},"correcta":"C","tecnica":"Cuidado con los absolutos: el texto habla de 'la mayoría de los medicamentos', no de todas las medicinas.","explicacion":"En este ítem, la información explícita en el texto principal solamente permite una conclusión. Si se utiliza conocimiento previo o se infieren ideas que no están en el texto, podría incurrirse en un error. La opción A no es la clave, ya que, aunque el ser humano ha utilizado plantas para tratar enfermedades, la salud de la humanidad, en general, no ha sido mejor gracias a ese uso. La opción B no es la clave. Ninguna idea del texto principal se refiere a que los seres humanos solamente hayan utilizado las plantas para combatir las enfermedades. La opción D se descarta. Las ideas del texto principal se refieren a los principios activos de las plantas en la mayoría de los medicamentos, pero no a que esos principios activos sean la base de las medicinas. La opción C es la clave. Algunas substancias de las plantas se utilizan para crear medicamentos: sus principios activos; por tanto, son compuestos empleados por la industria farmacéutica."},{"id":37,"area":"Verbal","tema":"Comprensión lectora: causa","enunciado":"Una de las pirámides más famosas del Antiguo Egipto lleva por nombre la Gran Pirámide de Giza. Según lo que se conoce sobre la civilización egipcia, esta era un lugar de refugio para el líder religioso y político, pues le garantizaba la eternidad. Este personaje solía ser enterrado con sus objetos personales para vivir cómodamente en su próxima vida.","datos":null,"pregunta":"Según la información anterior, ¿cuál razón motivaba la presencia del faraón en la pirámide?","opciones":{"A":"Tener definido su futuro.","B":"Perpetuar su memoria en ella.","C":"Ser enterrado con las pertenencias familiares.","D":"Ser el único inspirador de este tipo de arquitectura."},"correcta":"A","tecnica":"La respuesta debe ser el motivo principal del texto, no una consecuencia ni un detalle posterior.","explicacion":"En este ítem, la información explícita en el texto principal solamente permite una razón para justificar la presencia del faraón en la pirámide. Otras ideas en el texto podrían relacionarse con dicha presencia sin ser la motivación principal. La opción B no es la clave. Ninguna idea del texto principal hace referencia a que el faraón fuera recordado gracias a la pirámide. La opción C no es la clave. El entierro con objetos personales era una consecuencia de que ya el faraón tuviera la vida eterna garantizada; por tanto, no era el motivo de la presencia del faraón en la pirámide. La opción D se descarta. Ninguna idea del texto principal refiere al faraón como único inspirador de la arquitectura de la pirámide. La opción A es la clave. Si la pirámide le garantizaba la eternidad al líder religioso y político, se estaba definiendo su futuro."},{"id":38,"area":"Verbal","tema":"Comprensión lectora: causa","enunciado":"La ciencia ficción ha sido uno de los géneros más debatidos, pues para muchos su criterio sobre la realidad no está de acuerdo con el mundo en el que vivimos, el cual otorga una enorme importancia a la ciencia y a la tecnología, pero esto no implica necesariamente que cada ámbito de la vida se entienda como mecanizado.","datos":null,"pregunta":"¿Por qué es problemático el concepto de ciencia ficción?","opciones":{"A":"Porque habla de mundos irreales.","B":"Porque posee un criterio muy racional.","C":"Porque trata solo de espacios automatizados.","D":"Porque desvirtúa la perspectiva de la realidad."},"correcta":"D","tecnica":"Cuando preguntan 'por qué es problemático', busca la causa que el texto menciona de forma explícita.","explicacion":"En este ítem, se pregunta la razón por la cual el concepto de ciencia ficción es problemático. La opción A no es la clave. Las ideas del texto principal establecen una relación entre la ciencia ficción y este mundo, es decir, no se refieren a otros mundos. La opción B no corresponde a la clave porque ninguna idea del texto principal se refiere a la racionalidad del criterio de la ciencia ficción. La opción C no es la clave. Al final del texto principal, se afirma que en la ciencia ficción cada ámbito de la vida no se entiende como algo mecanizado. Por tanto, esta opción más bien contradice el texto principal. La opción D es la clave. Según el texto principal, la ciencia ficción genera debate porque su criterio no se basa en la realidad que vivimos, aunque utiliza elementos de esta realidad, como la ciencia y la tecnología."},{"id":39,"area":"Matematica","tema":"Cuantitativo: sucesiones y patrones","enunciado":"Analice la siguiente secuencia y encuentre la ley que se da en ella: N<sub>1<\/sub> = 3; N<sub>2<\/sub> = 7; N<sub>3<\/sub> = 7 + 3<sup>2<\/sup> = 16; N<sub>4<\/sub> = 16 + 7<sup>2<\/sup> = 65.","datos":null,"pregunta":"De acuerdo con la ley que se da en la secuencia anterior, ¿cuál es el término N<sub>5<\/sub> de la secuencia?","opciones":{"A":"65 + 7<sup>2<\/sup>","B":"65 + 16<sup>2<\/sup>","C":"7 + 65<sup>2<\/sup>","D":"16 + 65<sup>2<\/sup>"},"correcta":"B","tecnica":"Cada término es el anterior más el cuadrado del que va dos posiciones atrás: N5 = 65 + 16².","explicacion":"Este ítem pide encontrar la ley de la secuencia y luego el quinto término. Al revisar los términos: N1 = 3; N2 = 7; N3 es igual al término anterior (N2 = 7) más el cuadrado del primer término (N1 = 3)² = 9, y 7 + 9 = 16; N4 es igual al término anterior (N3 = 16) más el cuadrado del segundo término (N2 = 7)² = 49, y 16 + 49 = 65. Entonces la ley es: cada término es el término anterior más el cuadrado del que va dos posiciones atrás. Siguiendo el patrón, el quinto término es el cuarto (N4 = 65) más el cuadrado del tercero (N3 = 16)² = 256, es decir, N5 = 65 + 16². Por lo anterior, la respuesta correcta es la opción B."},{"id":40,"area":"Verbal","tema":"Comprensión lectora: tema principal","enunciado":"Las hojas de las plantas pueden ser de diferentes tipos y formas: simples o complejas; de orillas dentadas, onduladas o lisas; de forma ovalada o acorazonada.","datos":null,"pregunta":"¿Cuál es el tema principal del texto anterior?","opciones":{"A":"La distribución de las hojas.","B":"La clasificación de las hojas.","C":"La composición de las hojas.","D":"La estructuración de las hojas."},"correcta":"B","tecnica":"Tema principal = la operación que el texto le hace a la información (enumerar, comparar, clasificar, describir).","explicacion":"La información del párrafo da una serie de datos sobre los tipos y formas de hojas. A partir de esta información, se debe interpretar el tema principal del texto. La opción A es incorrecta debido a que el texto brinda datos asociados a cualidades de las plantas, pero no sobre su distribución, como por ejemplo, su división de acuerdo con el espacio. La opción C se excluye debido a que el texto no menciona los componentes de las hojas de las plantas. La opción D indica que el tema central del texto es la estructuración de las hojas, pero en el ítem no hay una explicación de las hojas de acuerdo con sus partes como un conjunto, sino que menciona los tipos y las formas de las hojas en general. Por lo tanto, la opción acertada es la B, ya que el texto divide a las plantas de acuerdo con dos clases, o como muestra explícitamente el texto, con sus tipos y formas. Esto corresponde a una clasificación."},{"id":41,"area":"Matematica","tema":"Cuantitativo: paridad y divisibilidad","enunciado":"Paola y Kevin escogieron, cada uno, un número de dos dígitos. Comparando estos números, Paola se dio cuenta de que la suma de los dígitos de su número era la misma que la del número de Kevin.","datos":null,"pregunta":"Según el texto anterior, ¿cuál de las siguientes opciones, con certeza, es verdadera?","opciones":{"A":"Los dígitos de las decenas de los números escogidos son los mismos.","B":"Los dígitos de las unidades de los números escogidos son los mismos.","C":"Al sumar los 4 dígitos de los dos números escogidos se obtiene un número divisible por 2.","D":"Al sumar los 4 dígitos de los dos números escogidos se obtiene un número divisible por 3."},"correcta":"C","tecnica":"Si dos sumas de dígitos son iguales, la suma total es el doble de cualquiera: siempre es par, nunca divisible entre 3.","explicacion":"De acuerdo con la instrucción del ítem, se debe encontrar la opción verdadera ante el descubrimiento de Paola sobre la relación de los dígitos de su número con los de Kevin. Paola pudo escoger el 70 y Kevin el 25, pues, en ambos casos, la suma de los dígitos da como resultado 7. La respuesta correcta no puede ser la opción A, pues los dígitos de las decenas son 2 y 7. Tampoco puede ser la opción B, pues los dígitos de las unidades son 5 y 0. Debido a que la suma de los 4 dígitos es 14 y como 14 no es divisible por 3, la opción D no puede ser la respuesta correcta. La suma de los dígitos de cada número es la misma tanto para el número escogido por Paola como para el de Kevin. Al sumar los 4 dígitos se obtiene el doble de la suma de los dígitos de cada número, por lo que el resultado será divisible por 2. Ante esto, la respuesta correcta es la opción C."},{"id":42,"area":"Matematica","tema":"Cuantitativo: conteo de dígitos","enunciado":"Para participar en una rifa realizada en una fiesta, Julián entregó a cada invitado un boleto con un número. Julián fue quien numeró consecutivamente cada boleto, empezando con 1. En total, en los boletos entregados escribió 210 dígitos.","datos":null,"pregunta":"¿Cuántos invitados asistieron a la fiesta?","opciones":{"A":"106","B":"189","C":"198","D":"210"},"correcta":"A","tecnica":"Cuenta los dígitos por bloques: 9 de una cifra, 90 de dos cifras y el resto de tres en tres.","explicacion":"En este ítem se solicita averiguar la cantidad de invitados que llegaron a la fiesta de Julián. Para ello, el ítem brinda información sobre los boletos que Julián entregó a sus invitados. Como paso importante para la resolución del ítem, se debe recordar que, en la numeración decimal, que es la que comúnmente se utiliza, los dígitos son los números del 0 al 9, por ejemplo, el número 705 está conformado de 3 dígitos: 7, 0 y 5. De manera similar, el número 200 tiene 3 dígitos: 2, 0 y otro 0. Además, se debe considerar que por cada invitado que ingresó a la fiesta se entregó un boleto, es decir, la cantidad de boletos entregados representa la cantidad de invitados que asistieron a la fiesta. Julián utilizó 9 dígitos (1 dígito por cada boleto) para enumerar los primeros 9 boletos. A partir del boleto 10 y hasta el boleto 99, en cada boleto escribió 2 dígitos. Si Julián hubiera repartido 99 boletos, entonces, 90 de ellos tendrían dos dígitos (los números del 10 al 99). Por tanto, entre el boleto 1 y el 99, hubiera utilizado 189 dígitos. En otras palabras, Julián escribió hasta el boleto 99; 9 dígitos (primeros 9 boletos), más 180 dígitos (de los 90 boletos de 2 dígitos); lo que da un total de 189 dígitos. En el encabezado del ítem se indica que Julián escribió 210 dígitos, es decir, aún faltan dígitos por agregar, exactamente 21, que es el resultado de la resta 210 − 189. A partir de 100, los números son de 3 dígitos. Al dividir los 21 dígitos que aún faltan por 3, se obtiene que los 21 dígitos representan 7 números de 3 dígitos, los números del 100 al 106. Por lo anterior, si Julián escribió 210 dígitos tuvo que haber numerado hasta el boleto 106, cantidad que corresponde al número de invitados. Por lo tanto, la opción A es la respuesta correcta."},{"id":43,"area":"Matematica","tema":"Cuantitativo: proporciones encadenadas","enunciado":"Una escuela hizo una campaña para elaborar ecobloques. Los ecobloques son botellas de plástico rellenas de material no reciclable. Por cada ecobloque los grupos ganaban 200 puntos. Por cada 300 puntos, recibían un premio. En todo el año escolar, el grupo de Victoria obtuvo 16 premios en total.","datos":null,"pregunta":"¿Cuántos ecobloques elaboró el grupo de Victoria?","opciones":{"A":"8","B":"11","C":"16","D":"24"},"correcta":"D","tecnica":"Encadena de derecha a izquierda: premios → puntos → ecobloques. 16 × 300 = 4800, y 4800 ÷ 200 = 24.","explicacion":"El ítem solicita averiguar la cantidad total de ecobloques construidos, para lo que se ofrece el total de premios obtenidos por el grupo. El grupo de Victoria ganó 16 premios y cada premio se ganó al reunir 300 puntos, lo que implica que este grupo tenía 4800 puntos (16 * 300 = 4800) en total. Por cada ecobloque elaborado, se obtienen 200 puntos, quiere decir que si el grupo tenía 4800 puntos, esos puntos se obtuvieron de la elaboración de 24 ecobloques (4800 ÷ 200 = 24). Por lo anterior, la opción D es la respuesta correcta."},{"id":44,"area":"Verbal","tema":"Comprensión lectora: idea implícita","enunciado":"Los griegos intentaron encontrar la belleza mediante el arte, buscando la proporción y la medida justa, pues estas propiedades implican el equilibrio. Así, construyeron templos como el Partenón, que se edificaron por orden de Pericles, para agradar a los dioses. Un teatro, un hipódromo y un estadio pudieron ser otras obras construidas por los arquitectos griegos.","datos":null,"pregunta":"¿Cuál es la idea implícita del texto anterior?","opciones":{"A":"La construcción de edificaciones era una forma de buscar la belleza.","B":"La proporción y la medida justa eran la única forma de encontrar la belleza.","C":"El Partenón es el templo más conocido de cuantos construyeron los griegos.","D":"Los teatros, los hipódromos y los estadios se construyeron posteriormente a la edificación de los templos."},"correcta":"A","tecnica":"Una idea implícita se confirma con los ejemplos que da el texto: si usa la arquitectura como ejemplo, esa es la idea general.","explicacion":"El encabezado propone que los griegos buscaban la belleza a partir del equilibrio logrado por la proporción y la medida exacta. Además, esta idea se confirma con el ejemplo de la arquitectura. Al respecto, se debe deducir una idea sobre la información ofrecida. La opción B no es adecuada, ya que no es explícito que la única manera de encontrar belleza haya sido por medio de la proporción y la medida justa. La opción C tampoco puede ser la clave, pues en el encabezado no se dice que el Partenón haya sido el templo con mayor reconocimiento, solo es un ejemplo del tipo arquitectónico griego. La opción D propone un dato comparativo sobre la temporalidad en la que se construyeron las edificaciones, pero esta información no se localiza en el ítem. Por su parte, la opción A confirma la propuesta de las edificaciones arquitectónicas como un ejemplo de belleza, ya que se afirma que “Los griegos intentaron encontrar la belleza mediante el arte”, por lo tanto, constituye la clave del ítem."},{"id":45,"area":"Verbal","tema":"Comprensión lectora: síntesis del texto","enunciado":"Según algunos geógrafos, hace más de 250 millones de años, había un solo bloque continental rodeado por un gran océano. Esta masa de tierra se dividió en dos bloques que luego se fragmentaron aún más. Estas afirmaciones son claras, si se analiza la forma de los continentes actuales: por ejemplo, las líneas terrestres a ambos lados del océano Atlántico coinciden, como piezas de un mismo rompecabezas.","datos":null,"pregunta":"¿Cuál opción resume el texto anterior?","opciones":{"A":"Una teoría sobre cómo se formaron los continentes.","B":"Una descripción de cómo se formaron los continentes.","C":"Información completa sobre la separación de dos masas terrestres.","D":"Una hipótesis incorrecta acerca de la formación de los continentes."},"correcta":"A","tecnica":"Para resumir, distingue entre descripción (cómo pasó) y teoría (propuesta explicativa): aquí es 'según algunos geógrafos'.","explicacion":"El ítem expone la proposición hecha por algunos geógrafos sobre una masa de tierra que se dividió inicialmente en dos grandes bloques y, posteriormente, en otros. Para darle solidez a esta teoría, se especula que las líneas terrestres en ambos lados del océano Atlántico calzan. Para encontrar la opción adecuada, se debe resumir el texto anterior. La opción B plantea que la información del ítem es una descripción de cómo se conformaron los continentes, sin embargo, en ningún momento se describe esa formación, por lo tanto, se debe descartar la opción. La opción C, a pesar de que presenta información sobre la separación de las masas terrestres, es general, contraria a información completa o detallada. La opción D tiene información acertada en tanto presenta una hipótesis; aun así, no se puede afirmar que es una hipótesis incorrecta o correcta de acuerdo con la información del ítem. La opción A es la correcta, ya que efectivamente el enunciado es una teoría de cómo se formaron los continentes, pues se dice al inicio del ítem que, según algunos geógrafos, la formación fue de cierto modo."},{"id":46,"area":"Matematica","tema":"Cuantitativo: conteo de posibilidades","enunciado":"Rafael debe digitar una contraseña de 6 dígitos para desbloquear la pantalla de inicio de su computadora, pero no recuerda los últimos 2 dígitos. Lo que recuerda es que al sumar esos 2 dígitos el resultado es 10 y al multiplicarlos el resultado es mayor a 10.","datos":null,"pregunta":"¿Cuántas posibilidades de contraseña tiene Rafael para digitar?","opciones":{"A":"4","B":"7","C":"9","D":"10"},"correcta":"B","tecnica":"Lista los pares que cumplen la primera condición, descarta los que no cumplen la segunda y luego cuenta los órdenes posibles (55 solo tiene uno).","explicacion":"Se debe averiguar la cantidad de contraseñas posibles. La suma de los dígitos debe ser 10, así que hay 5 parejas iniciales: 1 y 9; 2 y 8; 3 y 7; 4 y 6; 5 y 5. Como además el producto debe ser mayor que 10, se descarta la pareja 1 y 9, porque 1 × 9 = 9. Quedan 4 parejas: 28, 37, 46 y 55. Ahora bien, Rafael no recuerda el orden de los dígitos, así que 28 y 82 cuentan como dos posibilidades, igual que 37 y 73, o 46 y 64: son 6 contraseñas. La pareja 5 y 5 solo produce una, porque cambiar el orden da el mismo número. En total, 6 + 1 = 7 posibilidades, que es la opción B."},{"id":47,"area":"Verbal","tema":"Comprensión lectora: vocabulario en contexto","enunciado":"El tamaño del planeta Júpiter alcanza casi el máximo posible para un cuerpo celeste no estelar. Si su masa fuera mayor, dispondríamos de dos estrellas en el sistema solar.","datos":null,"pregunta":"Según el texto, ¿cuál característica de Júpiter condicionaría su paso de planeta a estrella?","opciones":{"A":"La forma.","B":"La magnitud.","C":"La luminosidad.","D":"La temperatura."},"correcta":"B","tecnica":"Vocabulario en contexto: 'magnitud' aquí significa tamaño o masa, no importancia.","explicacion":"El encabezado del ítem indica que Júpiter alcanza casi el máximo posible para un cuerpo celeste no estelar. Si ese cuerpo fuera mayor sería una estrella. A partir de esta información se debe deducir la condición que llevaría al planeta Júpiter a ser una estrella. La opción A no corresponde a la clave debido a que la información del ítem no menciona la forma, sino el tamaño del planeta. La opción C no puede ser la clave, ya que la luminosidad no es información referida en el ítem, igual que la opción D puesto que no se alude a la temperatura. La opción D se descarta porque no es una característica citada en el texto que condicione el paso de Júpiter de planeta a estrella. La opción B es la clave, ya que la magnitud se refiere a la masa o materia contenida en el planeta Júpiter. Es decir, se refiere al tamaño de Júpiter."},{"id":48,"area":"Verbal","tema":"Comprensión lectora: paráfrasis","enunciado":"Con frecuencia estamos demasiado preocupados por el futuro como para reconocer la importancia del pasado. Sin embargo, este representa la base que da razón de lo que somos ahora.","datos":null,"pregunta":"¿Cuál opción reproduce una idea del texto anterior?","opciones":{"A":"Que el presente no vale sin el futuro.","B":"Que el presente no se explica sin el pasado.","C":"Que el pasado no vale sin proyección al futuro.","D":"Que el pasado es más importante que el futuro."},"correcta":"B","tecnica":"El texto dice que el pasado es la base de lo que somos: es el presente quien se explica por el pasado.","explicacion":"Para resolver este ítem se pide hallar, con base en el texto principal, la idea que reproduzca parte de lo que dice el enunciado. La opción A se descarta porque en el texto no se menciona el valor del presente en relación con el futuro, sino que se aprecia la importancia del pasado. La opción C presenta una idea que no puede ser la respuesta correcta porque se restringe el valor del pasado a su proyección en el futuro. El encabezado enfatiza que estar solo preocupados por el futuro es lo que resta valor al pasado. La opción D señala que el pasado es más importante que el futuro, lo cual no se extrae del texto porque en el encabezado no se habla de que un tiempo sea más importante que otro. Finalmente, la opción B propone que el presente se explica por el pasado y esto es justo lo que propone el encabezado al indicar que el pasado es la base que da razón de lo que somos ahora."},{"id":49,"area":"Matematica","tema":"Cuantitativo: lógica numérica","enunciado":"Considere que P y Q son números enteros positivos y que M = P · (Q + 1).","datos":null,"pregunta":"¿Cuál de las siguientes afirmaciones, con certeza, es verdadera?","opciones":{"A":"Si P es impar, entonces M es par.","B":"Si Q es impar, entonces M es impar.","C":"Si P y Q son impares, entonces M es par.","D":"Si P y Q son impares, entonces M es impar."},"correcta":"C","tecnica":"Descarta con números concretos: si Q es impar, Q + 1 es par, así que M siempre es par cuando ambos son impares.","explicacion":"En el ítem se presenta una operación con números enteros positivos M = P * (Q + 1). Se debe averiguar cuál de las opciones de respuesta es, con certeza, verdadera. Para esto se pueden utilizar valores particulares de M, P y Q. La opción A indica que si P es impar, entonces M es par. Se puede considerar, por ejemplo, P = 5 y Q = 8, de lo que se obtiene que M = 5 * (8 + 1) = 45, lo cual significa que M es impar, por lo que esta no es la respuesta correcta. La opción B indica que si Q es impar, entonces M es impar. Para esta opción se puede considerar, P = 4 y Q = 3, de donde se obtiene que M = 4 * (3 + 1) = 16, que es un número par. Esto quiere decir que esta opción tampoco es la respuesta correcta. La opción D indica que si P y Q son impares, entonces M es impar. Se puede considerar que P = 5 y Q = 7, entonces M = 5 * (7 + 1) = 40. Observe que, si P y Q son cualquier número entero impar, M siempre es par. Por lo cual la opción D es incorrecta. La opción C indica que si P y Q son impares, entonces M es par. Observe que, según lo obtenido en la opción D, si P y Q toman cualquier valor impar, sucede que M siempre es par. Por lo tanto, la opción C es la respuesta correcta."},{"id":50,"area":"Verbal","tema":"Comprensión lectora: aplicación de una definición","enunciado":"La asertividad es una forma emocionalmente inteligente de satisfacer nuestras necesidades, porque tiene en cuenta nuestros pensamientos, ideas y sentimientos, y también los de los demás de forma que resulte beneficioso para ambas partes. Imagine la siguiente situación: Elisa tiene planeado salir con sus amigas el sábado por la tarde a una actividad muy especial para ella. Ese mismo sábado su madre tiene una cita para que le corten el cabello y le pide a Elisa, desde el día anterior, que cuide a su hermano.","datos":null,"pregunta":"De acuerdo con la definición de asertividad enunciada en el primer párrafo, ¿cuál de las respuestas siguientes presenta a Elisa como una persona asertiva?","opciones":{"A":"Elisa convence a su madre de que pase la cita para el lunes y ella gustosamente cuidará a su hermano.","B":"Elisa se niega a cuidar a su hermano aduciendo que la actividad con sus amigas es muy especial para ella.","C":"Elisa acepta cuidar a su hermano, sin informar a su madre de que ella tiene un compromiso con sus amigas ese mismo día.","D":"Elisa le recuerda a su madre que ya tiene un compromiso con sus amigas, pero, resignada, acepta cuidar a su hermano ese día."},"correcta":"A","tecnica":"Aplica la definición: la asertividad beneficia a ambas partes. Busca la opción donde nadie pierde.","explicacion":"El ítem define la asertividad como una forma de inteligencia emocional con la que se satisfacen las necesidades propias tomando en cuenta las necesidades de otros. Elisa tiene planeado salir con sus amigas el sábado por la tarde y su madre le pidió cuidar a su hermano ese mismo día, por lo que hay que deducir en qué situación se comporta de manera asertiva. La opción B no es la clave, ya que la decisión de Elisa la beneficiaría solo a ella, sin considerar a la madre, lo cual contradice la definición. La opción C tampoco puede ser la clave: beneficia a la madre, pero Elisa omite informar su compromiso, es decir, no toma en cuenta sus propias necesidades. En la opción D Elisa muestra sus deseos, pero no llega a una solución que satisfaga a ambas partes, así que tampoco es asertiva. Finalmente, la opción A es la correcta: Elisa encuentra una solución que permite que su madre realice su cita y que ella salga con sus amigas, es decir, una opción beneficiosa para ambas partes."}];
+/* ========================================================================== */
+
+const LETRAS = ["A","B","C","D"];
+const LLAVE = "paa_paa_v1";
+const TOPO = {Verbal:"Razonamiento verbal", Matematica:"Razonamiento matemático"};
+const LIMITE_SEG = 146;              // 2 min 26 s: el promedio oficial por pregunta
+
+let E = cargar();
+let cola = [], iCola = 0, respondida = false, inicioPregunta = 0;
+let temporizador = null, sesionCerrada = false, ocultarSolucion = false;
+let sesionJugadas = new Set(), sesionMalas = new Set();   // intentos de ESTA sesión
+
+const $ = id => document.getElementById(id);
+const p = id => E.progreso[id] || {vistos:0, aciertos:0, ultima:null, dudosa:false};
+const pct = (a,b) => b ? Math.round(a/b*100) : 0;
+const clase = v => v>=70 ? "" : v>=40 ? "med" : "mal";
+
+/* ------------------------------- estado ---------------------------------- */
+function estadoInicial(){
+  return {progreso:{}, dudosas:[], sesiones:[], config:{area:"todas", tema:"todos", modo:"prioridad", cantidad:"20"}};
+}
+function cargar(){
+  try{
+    const v = JSON.parse(localStorage.getItem(LLAVE));
+    if(v && v.progreso) return Object.assign(estadoInicial(), v);
+  }catch(e){}
+  return estadoInicial();
+}
+function guardar(){ try{ localStorage.setItem(LLAVE, JSON.stringify(E)); }catch(e){} }
+
+/* ------------------------------ navegación ------------------------------- */
+const VISTAS = {config:"vConfig", estudio:"vEstudio", stats:"vStats", info:"vInfo"};
+function ver(v){
+  Object.keys(VISTAS).forEach(k => { $(VISTAS[k]).hidden = (k !== v); });
+  $("navPractica").classList.toggle("on", v==="config" || v==="estudio");
+  $("navStats").classList.toggle("on", v==="stats");
+  $("navInfo").classList.toggle("on", v==="info");
+  window.scrollTo(0,0);
+  if(v==="config") pintarConfig();
+  if(v==="stats") pintarStats();
+}
+$("navPractica").onclick = () => ver(cola.length && !sesionCerrada ? "estudio" : "config");
+$("navStats").onclick   = () => ver("stats");
+$("navInfo").onclick    = () => ver("info");
+
+/* ----------------------------- configuración ---------------------------- */
+function tarjeta(v,t,s){ return '<div class="stat"><b>'+v+'</b><span>'+t+'</span><br><span>'+s+'</span></div>'; }
+
+function temasDe(area){
+  const set = [...new Set(BANCO.filter(q => area==="todas" || q.area===area).map(q => q.tema))].sort();
+  return ["todos", ...set];
+}
+function filtrar(area, tema){
+  return BANCO.filter(q => (area==="todas" || q.area===area) && (tema==="todos" || q.tema===tema));
+}
+function pintarConfig(){
+  const selArea = $("fArea"), selTema = $("fTema");
+  selArea.value = E.config.area;
+
+  selTema.innerHTML = "";
+  temasDe(selArea.value).forEach(t => {
+    const o = document.createElement("option");
+    o.value = t; o.textContent = (t==="todos" ? "Todos los temas" : t);
+    selTema.appendChild(o);
+  });
+  if([...selTema.options].some(o => o.value === E.config.tema)) selTema.value = E.config.tema;
+  else { E.config.tema = "todos"; selTema.value = "todos"; }
+
+  $("fModo").value = E.config.modo;
+  $("fCant").value = E.config.cantidad;
+
+  const lista = filtrar(selArea.value, selTema.value);
+  const dud = lista.filter(q => E.dudosas.includes(q.id));
+  const fall = lista.filter(q => p(q.id).vistos && p(q.id).ultima === false);
+
+  $("conteoFiltro").innerHTML = "Con este filtro entran <b>" + lista.length + "</b> pregunta(s)"
+    + (dud.length  ? " · <b>" + dud.length  + "</b> dudosa(s)"  : "")
+    + (fall.length ? " · <b>" + fall.length + "</b> fallada(s)" : "")
+    + (E.config.modo==="prioridad" ? "<br>Con el orden “Primero las difíciles” aparecen primero las que nunca respondiste, luego las dudosas y las falladas." : "");
+
+  $("btnDudosas").disabled  = !E.dudosas.length;
+  $("btnFalladas").disabled = !fall.length;
+
+  $("txtDudosas").innerHTML = E.dudosas.length
+    ? "Tenés <b>" + E.dudosas.length + "</b> pregunta(s) marcada(s) con ⚠: la(s) " + E.dudosas.join(", ") +
+      ". Siempre salen antes que las demás en el orden “Primero las difíciles”."
+    : "Todavía no marcaste ninguna. Si dudás de una respuesta, tocá <b>⚠ Marcar dudosa</b> y esa pregunta vuelve a aparecer en tus prácticas, siempre al frente.";
+
+  let v=0, a=0;
+  BANCO.forEach(q => { const d = p(q.id); v += d.vistos; a += d.aciertos; });
+  $("resumen").innerHTML = tarjeta(v ? pct(a,v)+"%" : "—", "% de aciertos", v ? a+" de "+v+" respuestas" : "sin respuestas aún")
+    + tarjeta(E.dudosas.length, "dudosas", "en tu lista de repaso")
+    + tarjeta(BANCO.length, "preguntas", "en el banco");
+}
+$("fArea").onchange = e => { E.config.area = e.target.value; E.config.tema = "todos"; guardar(); pintarConfig(); };
+$("fTema").onchange = e => { E.config.tema = e.target.value; guardar(); pintarConfig(); };
+$("fModo").onchange = e => { E.config.modo  = e.target.value; guardar(); pintarConfig(); };
+$("fCant").onchange = e => { E.config.cantidad = e.target.value; guardar(); pintarConfig(); };
+
+/* ------------------------------ cola de trabajo -------------------------- */
+function mezclar(a){
+  const b = a.slice();
+  for(let i=b.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [b[i],b[j]] = [b[j],b[i]]; }
+  return b;
+}
+function construir(filas, modo, solo){
+  let lista = solo ? filas.filter(solo) : filas.slice();
+  if(modo === "aleatorio") return mezclar(lista);
+  if(modo === "orden")    return lista.sort((a,b) => a.id - b.id);
+  const nivel = q => { const d = p(q.id); if(!d.vistos) return 0; if(d.dudosa) return 1; if(d.ultima === false) return 2; return 3; };
+  return lista.sort((a,b) => nivel(a) - nivel(b));
+}
+function iniciar(solo, sinSolucion){
+  const area = $("fArea").value, tema = $("fTema").value;
+  let lista = construir(filtrar(area, tema), E.config.modo, solo);
+  if(E.config.cantidad !== "50") lista = lista.slice(0, +E.config.cantidad);
+  if(!lista.length){ alert("No hay preguntas que cumplan ese filtro."); return; }
+  cola = lista; iCola = 0; sesionCerrada = false; ocultarSolucion = !!sinSolucion;
+  sesionJugadas = new Set(); sesionMalas = new Set();
+  ver("estudio"); mostrar();
+}
+$("btnEmpezar").onclick     = () => iniciar(null, false);
+$("btnDudosas").onclick     = () => iniciar(id => E.dudosas.includes(id), false);
+$("btnFalladas").onclick    = () => iniciar(id => p(id).vistos && p(id).ultima === false, false);
+$("btnSinVer").onclick      = () => iniciar(null, true);
+
+/* -------------------------------- estudio -------------------------------- */
+function terminada(){ return iCola >= cola.length; }
+
+function mostrar(){
+  limpiarReloj(); respondida = false; inicioPregunta = Date.now();
+  const veredictoViejo = document.querySelector(".veredicto");
+  if(veredictoViejo) veredictoViejo.remove();
+  $("cardSesion").hidden = true;
+  $("cajaSolucion").hidden = true;
+  $("cajaSolucion").innerHTML = "";
+  $("cajaBotones").hidden = false;
+  $("progBar").style.width = (iCola / cola.length * 100) + "%";
+  $("mCuenta").textContent = "Pregunta " + (iCola+1) + " de " + cola.length;
+
+  if(terminada()){ cerrarSesion(); return; }
+
+  const q = cola[iCola];
+  $("mArea").textContent = TOPO[q.area] || q.area;
+  $("mTema").textContent = q.tema;
+  $("txtEnunciado").innerHTML = q.enunciado
+    + (q.datos ? "<ul class='datos'>" + q.datos.map(d => "<li>"+d+"</li>").join("") + "</ul>" : "");
+  $("txtPregunta").innerHTML = q.pregunta || "";
+
+  $("cajaOpciones").innerHTML = LETRAS.map(l =>
+    '<button class="op" data-l="'+l+'"><span class="letra">'+l+'</span><span>'+q.opciones[l]+'</span></button>'
+  ).join("");
+  $("cajaOpciones").querySelectorAll(".op").forEach(b => b.onclick = () => responder(b.dataset.l));
+
+  $("bSol").textContent = "Ver solución";
+  $("bSol").className = "btn sec";
+  $("bNext").textContent = "Siguiente →";
+  marcarBotonDudosa();
+  $("mTiempo").textContent = ""; $("mTiempo").style.color = "";
+
+  temporizador = setInterval(() => {
+    const s = Math.floor((Date.now() - inicioPregunta) / 1000);
+    $("mTiempo").textContent = "⏱ " + Math.floor(s/60) + ":" + String(s%60).padStart(2,"0");
+    $("mTiempo").style.color = s > LIMITE_SEG ? "var(--bad)" : s > 100 ? "var(--marca)" : "";
+    if(s >= 600) responder(null);          // 10 minutos: la cuenta como en blanco
+  }, 1000);
+}
+function limpiarReloj(){ if(temporizador){ clearInterval(temporizador); temporizador = null; } }
+
+function responder(letra){
+  if(respondida || terminada()) return;
+  respondida = true; limpiarReloj();
+
+  const q = cola[iCola];
+  const segundos = Math.round((Date.now() - inicioPregunta) / 1000);
+  const bien = letra === q.correcta;
+
+  const d = E.progreso[q.id] || (E.progreso[q.id] = {vistos:0, aciertos:0, ultima:null, dudosa:false});
+  d.vistos++; if(bien) d.aciertos++;
+  d.ultima = bien; d.ultimaLetra = letra; d.ultimaSeg = segundos;
+  sesionJugadas.add(q.id); if(!bien) sesionMalas.add(q.id);
+  guardar();
+
+  $("cajaOpciones").querySelectorAll(".op").forEach(b => {
+    b.disabled = true;
+    const L = b.dataset.l;
+    if(L === q.correcta) b.classList.add("bien");
+    else if(L === letra)   b.classList.add("mal");
+    else                   b.classList.add("atenuada");
+  });
+
+  const v = document.createElement("div");
+  v.className = "veredicto " + (bien ? "ok" : "no");
+  const cuando = segundos < 60 ? segundos + " s" : Math.floor(segundos/60) + " min " + (segundos%60) + " s";
+  v.innerHTML = (bien ? "✅" : "❌") + "<div><strong>" + (bien ? "¡Correcta!" : "Incorrecta") + "</strong>"
+    + (bien
+        ? "Elegiste la opción correcta (<b>" + q.correcta + "</b>). Tardaste " + cuando + "."
+        : "La correcta es <b>" + q.correcta + "</b>"
+          + (letra ? " y vos marcaste <b>" + letra + "</b>" : " (dejaste la pregunta en blanco)") + ". Tardaste " + cuando + ".")
+    + "</div>";
+  $("cajaBotones").parentNode.insertBefore(v, $("cajaBotones"));
+
+  $("bNext").textContent = terminada() ? "Ver resultado →" : "Siguiente →";
+  if(!ocultarSolucion) abrirSol(false);
+  pintarConfig();
+}
+
+function abrirSol(abrir){
+  const q = cola[iCola];
+  $("cajaSolucion").hidden = false;
+  $("cajaSolucion").innerHTML =
+    '<details class="sol"' + (abrir ? " open" : "") + '>'
+    + '<summary>Solución de la pregunta ' + q.id + ' · ' + q.tema + '</summary>'
+    + '<div class="cuerpo">'
+    + '<div class="tecnica"><b>Técnica:</b> ' + q.tecnica + '</div>'
+    + '<p>' + q.explicacion + '</p>'
+    + '</div></details>';
+  const det = $("cajaSolucion").querySelector("details");
+  det.addEventListener("toggle", () => { $("bSol").textContent = det.open ? "Ocultar solución" : "Ver solución"; });
+  if(abrir) det.open = true;
+}
+function toggleSol(){
+  const det = $("cajaSolucion").querySelector("details");
+  if(!det){ abrirSol(true); return; }
+  det.open = !det.open;
+}
+$("bSol").onclick = toggleSol;
+
+function marcarBotonDudosa(){
+  const marcada = E.dudosas.includes(cola[iCola].id);
+  $("bDudosa").classList.toggle("on", marcada);
+  $("bDudosa").textContent = marcada ? "⚠ Marcada como dudosa" : "⚠ Marcar dudosa";
+}
+function marcarDudosa(){
+  const q = cola[iCola];
+  const i = E.dudosas.indexOf(q.id);
+  if(i < 0){
+    E.dudosas.push(q.id);
+    if(!sesionCerrada) cola.splice(iCola + 3, 0, q);   // vuelve a salir en esta misma sesión
+  }else{
+    E.dudosas.splice(i,1);
+    const sobra = cola.findIndex((x, idx) => idx > iCola && x.id === q.id);
+    if(sobra >= 0) cola.splice(sobra, 1);              // y sale de la cola si se desmarca
+  }
+  const d = p(q.id);
+  d.dudosa = (i < 0);
+  guardar(); marcarBotonDudosa(); pintarConfig();
+  $("mCuenta").textContent = "Pregunta " + (iCola+1) + " de " + cola.length;
+  $("progBar").style.width = (iCola / cola.length * 100) + "%";
+}
+$("bDudosa").onclick = marcarDudosa;
+$("bSalir").onclick  = () => ver("config");
+
+function siguiente(){
+  if(!respondida && !terminada() && !confirm("Todavía no respondiste esta pregunta. ¿Querés pasar a la siguiente?")) return;
+  iCola++; mostrar();
+}
+$("bNext").onclick = siguiente;
+
+/* --------------------------- fin de la sesión --------------------------- */
+function cerrarSesion(){
+  if(sesionCerrada) return;
+  sesionCerrada = true; limpiarReloj();
+
+  const jugadas = [...sesionJugadas];
+  const aciertos = jugadas.filter(id => !sesionMalas.has(id)).length;
+  const segundos = jugadas.reduce((a,id) => a + (p(id).ultimaSeg || 0), 0);
+  E.sesiones.push({fecha:Date.now(), n:jugadas.length, ok:aciertos, seg:segundos});
+  if(E.sesiones.length > 60) E.sesiones.shift();
+  guardar();
+
+  $("progBar").style.width = "100%";
+  $("mCuenta").textContent = "Sesión terminada";
+  $("mTiempo").textContent = "";
+  const vf = document.querySelector(".veredicto");
+  if(vf) vf.remove();
+  $("txtEnunciado").innerHTML = "";
+  $("txtPregunta").innerHTML = "";
+  $("cajaOpciones").innerHTML = "";
+  $("cajaSolucion").hidden = true;
+  $("cajaBotones").hidden = true;
+  $("cardSesion").hidden = false;
+
+  const prom = aciertos / jugadas.length;
+  const msg = prom >= 0.9 ? "Dominás este bloque: menos de 1 fallo cada 10."
+           : prom >= 0.7 ? "Muy bien. Bajá a la parte que te falte y mantené el ritmo."
+           : prom >= 0.5 ? "Vas a medias: leé las soluciones de abajo y repetí las falladas."
+           : "Este bloque estuvo difícil. Leé todo con calma y volvé a hacerlo en modo “Primero las difíciles”.";
+  $("resumenFin").innerHTML = tarjeta(pct(aciertos, jugadas.length) + "%", "de aciertos", aciertos + " de " + jugadas.length)
+    + tarjeta(Math.floor(segundos/60) + ":" + String(segundos%60).padStart(2,"0"), "tiempo total",
+        jugadas.length ? Math.round(segundos/jugadas.length) + " s por pregunta (promedio oficial: 146 s)"
+                       : "no respondiste ninguna")
+    + tarjeta(E.dudosas.length, "dudosas", "acumuladas en tu lista");
+
+  const malas = jugadas.filter(id => sesionMalas.has(id)).map(id => BANCO.find(q => q.id === id));
+  $("detalleFalladas").innerHTML = (malas.length
+      ? "<h2>Repasá estas " + malas.length + " pregunta(s)</h2>"
+      : "<h2>Sin fallos</h2><p class=\"muted\">Acertaste todo. Metele más preguntas o probá con el filtro del otro área.</p>")
+    + malas.map(q => '<details class="sol"><summary>❌ #' + q.id + " · " + q.tema + "</summary>"
+        + '<div class="cuerpo">'
+        + (q.pregunta ? '<p class="chico muted">' + q.pregunta + "</p>" : "")
+        + "<p><b>Respuesta correcta: " + q.correcta + ")</b> " + q.opciones[q.correcta] + "</p>"
+        + '<div class="tecnica"><b>Técnica:</b> ' + q.tecnica + "</div>"
+        + "<p>" + q.explicacion + "</p></div></details>").join("")
+    + '<p class="muted chico" style="margin-top:14px">' + msg + "</p>";
+
+  window.scrollTo(0,0);
+}
+$("btnRepetirFalladas").onclick = () => {
+  const malas = [...sesionMalas].map(id => BANCO.find(q => q.id === id)).filter(Boolean);
+  if(!malas.length){ alert("No hay preguntas falladas en esta sesión."); return; }
+  cola = mezclar(malas); iCola = 0; sesionCerrada = false;
+  sesionJugadas = new Set(); sesionMalas = new Set();
+  $("cardSesion").hidden = true; mostrar();
+};
+$("btnVolver").onclick = () => { cola = []; ver("config"); };
+
+/* ------------------------------ estadísticas ----------------------------- */
+function pintarStats(){
+  let v=0, a=0;
+  BANCO.forEach(q => { const d = p(q.id); v += d.vistos; a += d.aciertos; });
+  $("statGlobal").innerHTML = tarjeta(v ? pct(a,v)+"%" : "—", "% de aciertos", a + " correctas de " + v + " respuestas")
+    + tarjeta(String(v), "preguntas vistas", "de " + BANCO.length + " del banco")
+    + tarjeta(E.dudosas.length, "dudosas", "en tu lista de repaso")
+    + tarjeta(E.sesiones.length, "sesiones", E.sesiones.length
+        ? "última: " + new Date(E.sesiones[E.sesiones.length-1].fecha).toLocaleDateString("es-CR")
+        : "todavía ninguna");
+
+  let h = "<tr><th>Área</th><th class='num'>Aciertos</th><th class='num'>%</th><th></th></tr>";
+  ["Verbal","Matematica"].forEach(ar => {
+    const qs = BANCO.filter(q => q.area === ar);
+    let x=0, n=0; qs.forEach(q => { const d = p(q.id); x += d.aciertos; n += d.vistos; });
+    const pc = pct(x,n);
+    h += "<tr><td>" + TOPO[ar] + "</td><td class='num'>" + (n ? x+"/"+n : "—") + "</td><td class='num'>" + (n ? pc+"%" : "—")
+       + "</td><td><div class='barra-p'><i class='" + clase(pc) + "' style='width:" + pc + "%'></i></div></td></tr>";
+  });
+  $("tabArea").innerHTML = h;
+
+  const temas = {};
+  BANCO.forEach(q => {
+    const d = p(q.id);
+    if(!d.vistos) return;
+    if(!temas[q.tema]) temas[q.tema] = {ok:0, n:0};
+    temas[q.tema].n++; temas[q.tema].ok += d.aciertos;
+  });
+  const filas = Object.keys(temas).map(k => [k, temas[k].ok, temas[k].n, pct(temas[k].ok, temas[k].n)])
+                    .sort((a,b) => (a[3]-b[3]) || (b[2]-a[2]));
+  $("tabTema").innerHTML = filas.length
+    ? "<tr><th>Tema</th><th class='num'>Aciertos</th><th class='num'>%</th><th></th></tr>" + filas.map(f =>
+        "<tr><td>" + f[0] + "</td><td class='num'>" + f[1] + "/" + f[2] + "</td><td class='num'>" + f[3] + "%</td>"
+        + "<td><div class='barra-p'><i class='" + clase(f[3]) + "' style='width:" + f[3] + "%'></i></div></td></tr>").join("")
+    : "<tr><td colspan='4' class='vacio'>Todavía no hay respuestas registradas. Empezá a practicar y acá verás tus temas débiles.</td></tr>";
+
+  $("tabSesiones").innerHTML = E.sesiones.length
+    ? "<tr><th>Fecha</th><th class='num'>Preguntas</th><th class='num'>Aciertos</th><th class='num'>%</th><th class='num'>Tiempo</th></tr>"
+      + E.sesiones.slice().reverse().slice(0,15).map(s =>
+        "<tr><td>" + new Date(s.fecha).toLocaleString("es-CR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})
+        + "</td><td class='num'>" + s.n + "</td><td class='num'>" + s.ok + "</td><td class='num'>" + pct(s.ok,s.n)
+        + "%</td><td class='num'>" + Math.floor(s.seg/60) + ":" + String(s.seg%60).padStart(2,"0") + "</td></tr>").join("")
+    : "<tr><td colspan='5' class='vacio'>Sin sesiones registradas todavía.</td></tr>";
+}
+$("btnReset").onclick = () => {
+  if(!confirm("Esto borra todo tu progreso: aciertos, dudosas e historial de sesiones. ¿Seguir?")) return;
+  E = estadoInicial(); cola = []; sesionCerrada = true; guardar();
+  ver("config");
+};
+
+/* -------------------------------- teclado -------------------------------- */
+document.addEventListener("keydown", e => {
+  if(/^(SELECT|INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+  if(e.ctrlKey || e.altKey || e.metaKey) return;
+  const k = e.key.toLowerCase();
+
+  if(k === "escape"){ ver("config"); return; }
+  if($("vEstudio").hidden) return;
+
+  if(k === "m" && !terminada()){ e.preventDefault(); marcarDudosa(); return; }
+  if(respondida || terminada()){
+    if(k === "enter" || k === "arrowright"){ e.preventDefault(); siguiente(); }
+    else if(k === " " || k === "s"){ e.preventDefault(); toggleSol(); }
+    return;
+  }
+  if("1234".includes(k) || "abcd".includes(k)){
+    e.preventDefault();
+    responder(LETRAS["1234abcd".indexOf(k)]);
+  }else if(k === "s" || k === " "){ e.preventDefault(); abrirSol(true); }
+  else if(k === "arrowright"){ e.preventDefault(); siguiente(); }
+});
+
+/* --------------------------------- inicio --------------------------------- */
+ver("config");
+</script>
+</body>
+</html>
